@@ -9,6 +9,7 @@ import { useAuth } from "./context/AuthContext";
 import "./App.css";
 import Register from "./pages/public/Register";
 import EditProfile from "./pages/private/EditProfile";
+import NotificationsPage from "./pages/private/NotificationPage";
 
 function App() {
   const { loading } = useAuth();
@@ -29,10 +30,12 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/notifications" element={<NotificationsPage/>}/>
           <Route element={<PrivateRoute />}>
             <Route path="/profile" element={<Profile />} />
             <Route path="/editprofile/:id" element={<EditProfile />} />
             <Route path="/feed" element={<Feed />} />
+    
           </Route>
         </Routes>
       </div>
