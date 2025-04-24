@@ -9,7 +9,10 @@ import { useAuth } from "./context/AuthContext";
 import "./App.css";
 import Register from "./pages/public/Register";
 import EditProfile from "./pages/private/EditProfile";
-import NotificationsPage from "./pages/private/NotificationPage";
+import CommentPage from "./pages/private/Comment/Comment";
+import CreatePost from "./pages/private/Post/CreatePost";
+import EditPost  from "./pages/private/Post/EditPost";
+import PostFeed from "./pages/private/Post/PostFeed";
 
 function App() {
   const { loading } = useAuth();
@@ -30,12 +33,15 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/notifications" element={<NotificationsPage/>}/>
           <Route element={<PrivateRoute />}>
             <Route path="/profile" element={<Profile />} />
             <Route path="/editprofile/:id" element={<EditProfile />} />
             <Route path="/feed" element={<Feed />} />
-    
+            <Route path="/comment" element={<CommentPage/>}/>
+            <Route path="/post" element={<CreatePost/>}/>
+            <Route path="/editpost" element={<EditPost/>}/>
+            <Route path="/feedpost" element={<PostFeed/>}/>
+
           </Route>
         </Routes>
       </div>
