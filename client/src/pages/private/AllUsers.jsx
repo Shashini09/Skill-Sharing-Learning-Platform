@@ -7,6 +7,7 @@ export default function AllUsers({ currentUser }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [followError, setFollowError] = useState(null);
+  const [isProcessing, setIsProcessing] = useState({}); // Track processing state for each user
 
   // Fetch users when component mounts
   useEffect(() => {
@@ -23,7 +24,8 @@ export default function AllUsers({ currentUser }) {
         setUsers(updatedUsers);
         setLoading(false);
       } catch (err) {
-        setError('Failed to fetch users');
+        console.error('Fetch users error:', err);
+        setError('Failed to fetch users. Please try again later.');
         setLoading(false);
       }
     };
@@ -31,24 +33,40 @@ export default function AllUsers({ currentUser }) {
     fetchUsers();
   }, [currentUser]);
 
-  // Handle follow button click
-  const handleFollow = async (userId) => {
+  // Handle follow/unfollow button click with optimistic updates
+  const handleFollowToggle = async (userId, isFollowed) => {
+    // Prevent multiple clicks
+    if (isProcessing[userId]) return;
+
     setFollowError(null);
+    setIsProcessing(prev => ({ ...prev, [userId]: true }));
+
+    // Optimistically update the UI
+    const previousUsers = [...users];
+    setUsers(users.map(user =>
+      user.id === userId ? { ...user, isFollowed: !isFollowed } : user
+    ));
+
     try {
-      // Send POST request to follow endpoint
-      const response = await axios.post(`http://localhost:8080/users/${userId}/follow`, null, {
-        withCredentials: true,
-      });
-      // Update local state to reflect follow status based on server response
-      setUsers(users.map(user =>
-        user.id === userId ? { ...user, isFollowed: response.data.following.includes(userId) } : user
-      ));
+      if (isFollowed) {
+        // Send POST request to unfollow endpoint
+        await axios.post(`http://localhost:8080/users/${userId}/unfollow`, null, {
+          withCredentials: true,
+        });
+      } else {
+        // Send POST request to follow endpoint
+        await axios.post(`http://localhost:8080/users/${userId}/follow`, null, {
+          withCredentials: true,
+        });
+      }
     } catch (err) {
-      console.error('Failed to follow user:', err);
-      const errorMessage = err.response?.data?.startsWith('Error: ')
-        ? err.response.data
-        : 'Could not follow user: Unknown error';
+      console.error(`${isFollowed ? 'Unfollow' : 'Follow'} failed:`, err);
+      // Revert optimistic update on error
+      setUsers(previousUsers);
+      const errorMessage = err.response?.data || `Could not ${isFollowed ? 'unfollow' : 'follow'} user: Unknown error`;
       setFollowError(errorMessage);
+    } finally {
+      setIsProcessing(prev => ({ ...prev, [userId]: false }));
     }
   };
 
@@ -127,16 +145,34 @@ export default function AllUsers({ currentUser }) {
                   </div>
                   <div>
                     <button
-                      onClick={() => handleFollow(dbUser.id)}
-                      disabled={dbUser.isFollowed}
-                      aria-label={dbUser.isFollowed ? `Following ${dbUser.name}` : `Follow ${dbUser.name}`}
-                      className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition transform hover:scale-105 disabled:cursor-not-allowed ${
+                      onClick={() => handleFollowToggle(dbUser.id, dbUser.isFollowed)}
+                      disabled={isProcessing[dbUser.id]}
+                      aria-label={dbUser.isFollowed ? `Unfollow ${dbUser.name}` : `Follow ${dbUser.name}`}
+                      className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed ${
                         dbUser.isFollowed
-                          ? 'bg-gray-300 text-gray-600'
+                          ? 'bg-red-500 text-white hover:bg-red-600'
                           : 'bg-indigo-600 text-white hover:bg-indigo-700'
                       }`}
                     >
-                      {dbUser.isFollowed ? 'Following' : 'Add Follow'}
+                      {isProcessing[dbUser.id] ? (
+                        <svg
+                          className="animate-spin h-5 w-5 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
+                        </svg>
+                      ) : dbUser.isFollowed ? (
+                        'Unfollow'
+                      ) : (
+                        'Follow'
+                      )}
                     </button>
                   </div>
                 </div>

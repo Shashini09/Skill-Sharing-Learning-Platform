@@ -63,6 +63,23 @@ public class UserController {
         }
     }
 
+    // Unfollow a user
+    @PostMapping("/{id}/unfollow")
+    public ResponseEntity<?> unfollowUser(@PathVariable String id) {
+        try {
+            String principal = SecurityContextHolder.getContext().getAuthentication().getName();
+            if (principal == null || principal.trim().isEmpty()) {
+                return ResponseEntity.status(401).body("Authentication required");
+            }
+            System.out.println("Attempting to unfollow user " + id + " by principal " + principal);
+            User updatedUser = userService.unfollowUser(principal, id);
+            return ResponseEntity.ok(updatedUser);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Unfollow failed: " + e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     // Get followers' details for a user by ID
     @GetMapping("/{id}/followers")
     public ResponseEntity<List<User>> getFollowers(@PathVariable String id) {
@@ -95,7 +112,7 @@ public class UserController {
             return ResponseEntity.ok(followers);
         } catch (IllegalArgumentException e) {
             System.out.println("Failed to fetch current user's followers: " + e.getMessage());
-            return ResponseEntity.badRequest().body(null); // Changed to return null to match List<User>
+            return ResponseEntity.badRequest().body(null);
         }
     }
 
@@ -113,7 +130,7 @@ public class UserController {
             return ResponseEntity.ok(following);
         } catch (IllegalArgumentException e) {
             System.out.println("Failed to fetch current user's following: " + e.getMessage());
-            return ResponseEntity.badRequest().body(null); // Changed to return null to match List<User>
+            return ResponseEntity.badRequest().body(null);
         }
     }
 }

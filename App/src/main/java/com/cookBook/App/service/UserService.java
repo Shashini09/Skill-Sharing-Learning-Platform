@@ -91,6 +91,47 @@ public class UserService {
         return userRepository.save(currentUser);
     }
 
+    // Remove a user from the current user's following list
+    public User unfollowUser(String principal, String userIdToUnfollow) {
+        // Validate inputs
+        if (principal == null || principal.trim().isEmpty()) {
+            throw new IllegalArgumentException("Invalid principal");
+        }
+        if (userIdToUnfollow == null || userIdToUnfollow.trim().isEmpty()) {
+            throw new IllegalArgumentException("Invalid user ID to unfollow");
+        }
+
+        // Find the current user by providerId (OAuth2 principal)
+        User currentUser = findByProviderId(principal);
+
+        // Check if the user to unfollow exists
+        User userToUnfollow = userRepository.findById(userIdToUnfollow)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userIdToUnfollow));
+
+        // Prevent self-unfollowing
+        if (currentUser.getId().equals(userIdToUnfollow)) {
+            throw new IllegalArgumentException("Cannot unfollow yourself");
+        }
+
+        // Remove userIdToUnfollow from the current user's following list
+        List<String> following = currentUser.getFollowing();
+        if (following.contains(userIdToUnfollow)) {
+            following.remove(userIdToUnfollow);
+            currentUser.setFollowing(following);
+        }
+
+        // Remove current user from the userToUnfollow's followers list
+        List<String> followers = userToUnfollow.getFollowers();
+        if (followers.contains(currentUser.getId())) {
+            followers.remove(currentUser.getId());
+            userToUnfollow.setFollowers(followers);
+            userRepository.save(userToUnfollow); // Save the unfollowed user
+        }
+
+        // Save and return the updated current user
+        return userRepository.save(currentUser);
+    }
+
     // Get followers' details by their IDs
     public List<User> getFollowersByIds(List<String> followerIds) {
         if (followerIds == null || followerIds.isEmpty()) {
