@@ -9,6 +9,11 @@ import { useAuth } from "./context/AuthContext";
 import "./App.css";
 import Register from "./pages/public/Register";
 import EditProfile from "./pages/private/EditProfile";
+import AllUsers from "./pages/private/AllUsers";
+import Following from "./pages/private/Following";
+import Followers from "./pages/private/Followers";
+
+import FriendsProfile from "./pages/private/FriendsProfile";
 
 function App() {
   const { loading } = useAuth();
@@ -32,6 +37,10 @@ function App() {
           <Route element={<PrivateRoute />}>
             <Route path="/profile" element={<Profile />} />
             <Route path="/editprofile/:id" element={<EditProfile />} />
+            <Route path="/allusers" element={<AllUsers />} />
+            <Route path="/following" element={<Following />} />
+            <Route path="/followers" element={<Followers />} />
+            <Route path="/frendsprofile/:id" element={<FriendsProfile/>} />
             <Route path="/feed" element={<Feed />} />
           </Route>
         </Routes>
