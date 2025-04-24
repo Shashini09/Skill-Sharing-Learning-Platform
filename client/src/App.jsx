@@ -15,6 +15,10 @@ import Followers from "./pages/private/Followers";
 
 import FriendsProfile from "./pages/private/FriendsProfile";
 
+import CreatePost from "./pages/private/PostManagement/CreatePost";
+import EditPost from "./pages/private/PostManagement/EditPost";
+import PostFeed from "./pages/private/PostManagement/PostFeed";
+
 function App() {
   const { loading } = useAuth();
 
@@ -42,6 +46,12 @@ function App() {
             <Route path="/followers" element={<Followers />} />
             <Route path="/frendsprofile/:id" element={<FriendsProfile/>} />
             <Route path="/feed" element={<Feed />} />
+
+            <Route path="/createpost" element={<CreatePost />} />
+            <Route path="/editpost" element={<EditPost/>} />
+            <Route path="/postfeed" element={<PostFeed/>} />
+
+
           </Route>
         </Routes>
       </div>
