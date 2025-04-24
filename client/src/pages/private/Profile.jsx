@@ -187,6 +187,21 @@ const Profile = () => {
           <div className="bg-white rounded-2xl shadow-lg p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Actions</h2>
             <div className="space-y-4">
+            
+            <Link
+                to={`/followers`}
+                className="block w-full text-center bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition duration-300 transform hover:scale-105"
+              >
+                Follwers
+              </Link>
+
+            <Link
+                to={`/following`}
+                className="block w-full text-center bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition duration-300 transform hover:scale-105"
+              >
+                Following
+              </Link>
+
               <Link
                 to={`/editprofile/${user.id}`}
                 className="block w-full text-center bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition duration-300 transform hover:scale-105"
