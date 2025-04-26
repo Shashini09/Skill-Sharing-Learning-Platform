@@ -10,9 +10,17 @@ const PostFeed = () => {
   const [visibleComments, setVisibleComments] = useState({}); // postId: boolean
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState({}); // postId: [comments]
+  const [editingCommentId, setEditingCommentId] = useState(null);
+const [editCommentText, setEditCommentText] = useState('');
+
 
   const userId = localStorage.getItem('userId') || 'user123';
   const userName = localStorage.getItem('userName') || 'Anonymous';
+
+  const [likeCounts, setLikeCounts] = useState({});
+const [userLikes, setUserLikes] = useState({});
+
+
 
   const fetchPosts = async () => {
     try {
@@ -22,6 +30,42 @@ const PostFeed = () => {
       toast.error('Failed to fetch posts');
     }
   };
+
+  const handleLike = async (postId) => {
+    try {
+      await axios.post(
+        `http://localhost:8080/api/likes`,
+        {
+          postId,
+          userId,
+          timestamp: new Date().toISOString(),
+        },
+        { withCredentials: true }
+      );
+      fetchLikeCount(postId);
+      fetchUserLiked(postId);
+    } catch {
+      toast.error("Like failed");
+    }
+  };
+  
+  const fetchLikeCount = async (postId) => {
+    const res = await axios.get(
+      `http://localhost:8080/api/likes/${postId}/count`,
+      { withCredentials: true }
+    );
+    setLikeCounts((prev) => ({ ...prev, [postId]: res.data }));
+  };
+  
+  const fetchUserLiked = async (postId) => {
+    const res = await axios.get(
+      `http://localhost:8080/api/likes/${postId}/user/${userId}`,
+      { withCredentials: true }
+    );
+    setUserLikes((prev) => ({ ...prev, [postId]: res.data }));
+  };
+  
+  
 
   const fetchComments = async (postId) => {
     try {
@@ -104,6 +148,41 @@ const PostFeed = () => {
     }
   };
 
+  const handleDeleteComment = async (commentId, postId) => {
+    if (window.confirm("Delete this comment?")) {
+      try {
+        await axios.delete(`http://localhost:8080/api/comments/${commentId}`,{ withCredentials: true });
+        fetchComments(postId);
+        toast.success("Comment deleted");
+      } catch (err) {
+        toast.error("Failed to delete comment");
+      }
+    }
+  };
+  
+  const handleEditComment = (comment) => {
+    setEditingCommentId(comment.id);
+    setEditCommentText(comment.text);
+  };
+  
+  const handleUpdateComment = async (commentId, postId) => {
+    try {
+      await axios.put(`http://localhost:8080/api/comments/${commentId}`, 
+        { text: editCommentText }, 
+        { withCredentials: true }
+      );
+      
+      
+      setEditingCommentId(null);
+      setEditCommentText('');
+      fetchComments(postId);
+      toast.success("Comment updated");
+    } catch (err) {
+      toast.error("Failed to update comment");
+    }
+  };
+  
+
   useEffect(() => {
     fetchPosts();
   }, []);
@@ -170,15 +249,64 @@ const PostFeed = () => {
                   </form>
 
                   <ul className="space-y-2">
-                    {(comments[post.id] || []).map((comment) => (
-                      <li key={comment.id} className="border p-3 rounded bg-gray-50">
-                        <div className="text-sm text-gray-700 mb-1">
-                          <strong>{comment.user}</strong> – {new Date(comment.timestamp).toLocaleString()}
-                        </div>
-                        <div className="text-gray-800">{comment.text}</div>
-                      </li>
-                    ))}
-                  </ul>
+  {(comments[post.id] || []).map((comment) => (
+    <li key={comment.id} className="border p-3 rounded bg-gray-50">
+      <div className="text-sm text-gray-700 mb-1">
+        <strong>{comment.user}</strong> – {new Date(comment.timestamp).toLocaleString()}
+      </div>
+
+      {editingCommentId === comment.id ? (
+        <>
+          <textarea
+            className="w-full border rounded p-2"
+            value={editCommentText}
+            onChange={(e) => setEditCommentText(e.target.value)}
+          />
+          <button
+            className="bg-green-500 text-white px-3 py-1 rounded mt-2"
+            onClick={() => handleUpdateComment(comment.id, post.id)}
+          >
+            Save
+          </button>
+          <button
+            className="bg-gray-400 text-white px-3 py-1 rounded mt-2 ml-2"
+            onClick={() => setEditingCommentId(null)}
+          >
+            Cancel
+          </button>
+        </>
+      ) : (
+        <>
+          <p>{comment.text}</p>
+          {comment.user === userName && (
+            <div className="flex gap-3 mt-2">
+              <button
+                className="text-blue-600 hover:underline"
+                onClick={() => handleEditComment(comment)}
+              >
+                Edit
+              </button>
+              <button
+                className="text-red-600 hover:underline"
+                onClick={() => handleDeleteComment(comment.id, post.id)}
+              >
+                Delete
+              </button>
+            </div>
+          )}
+        </>
+      )}
+    </li>
+  ))}
+</ul>
+
+                  <button
+  onClick={() => handleLike(post.id)}
+  className={`px-3 py-1 rounded ${userLikes[post.id] ? 'bg-blue-600 text-white' : 'bg-gray-200 text-black'}`}
+>
+  {userLikes[post.id] ? 'Liked' : 'Like'} ({likeCounts[post.id] || 0})
+</button>
+
                 </div>
               )}
             </>
