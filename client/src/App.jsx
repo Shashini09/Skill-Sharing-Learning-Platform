@@ -10,6 +10,11 @@ import "./App.css";
 import Register from "./pages/public/Register";
 import EditProfile from "./pages/private/EditProfile";
 
+import CreateLearningPlan from "./pages/private/LearningPlans/CreateLearningPlan";
+import LearningPlanList from "./pages/private/LearningPlans/LearningPlansList";
+import EditLearningPlan from "./pages/private/LearningPlans/EditLearningPlan";
+
+
 function App() {
   const { loading } = useAuth();
 
@@ -33,6 +38,9 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/editprofile/:id" element={<EditProfile />} />
             <Route path="/feed" element={<Feed />} />
+            <Route path="/learning-plans" element={<LearningPlanList />} />
+            <Route path="/create-learning-plans" element={<CreateLearningPlan />} />
+            <Route path="/edit-learning-plan/:id" component={<EditLearningPlan />} />
           </Route>
         </Routes>
       </div>
