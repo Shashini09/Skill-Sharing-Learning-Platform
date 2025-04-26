@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 // Functional component to display the list of users the current user is following
 export default function Following() {
@@ -98,16 +99,25 @@ export default function Following() {
                 {following.map((user) => (
                   <li
                     key={user.id}
-                    className="flex items-center p-4 hover:bg-gray-50 transition duration-150 ease-in-out"
+                    className="flex items-center justify-between p-4 hover:bg-gray-50 transition duration-150 ease-in-out"
                   >
-                    {/* Profile picture */}
-                    <img
-                      src={user.picture || 'https://via.placeholder.com/40'}
-                      alt={`${user.name}'s profile`}
-                      className="h-10 w-10 rounded-full object-cover mr-4"
-                    />
-                    {/* User name */}
-                    <span className="text-gray-900 font-medium">{user.name}</span>
+                    <div className="flex items-center">
+                      {/* Profile picture */}
+                      <img
+                        src={user.picture || 'https://via.placeholder.com/40'}
+                        alt={`${user.name}'s profile`}
+                        className="h-10 w-10 rounded-full object-cover mr-4"
+                      />
+                      {/* User name */}
+                      <span className="text-gray-900 font-medium">{user.name}</span>
+                    </div>
+                    {/* View Profile button */}
+                    <Link
+                      to={`/users/${user.id}`}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition"
+                    >
+                      View Profile
+                    </Link>
                   </li>
                 ))}
               </ul>
