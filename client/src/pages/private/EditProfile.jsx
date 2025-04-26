@@ -64,6 +64,21 @@ export default function EditProfile() {
     }
   };
 
+  const handleDeactivate = async () => {
+    if (window.confirm("Are you sure you want to deactivate your profile? This action cannot be undone.")) {
+      try {
+        await axios.delete(`http://localhost:8080/users/${user.id}`, {
+          withCredentials: true,
+        });
+        alert("Profile deactivated successfully.");
+        navigate("/logout"); // Adjust to your logout route
+      } catch (error) {
+        console.error("Error deactivating profile:", error);
+        alert(`An error occurred: ${error.response?.data?.message || error.message}`);
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-xl mx-auto bg-white p-8 shadow-lg rounded-lg">
@@ -157,8 +172,15 @@ export default function EditProfile() {
             />
           </div>
 
-          {/* Submit Button */}
-          <div className="flex justify-end">
+          {/* Buttons */}
+          <div className="flex justify-between">
+            <button
+              type="button"
+              onClick={handleDeactivate}
+              className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition"
+            >
+              Deactivate Profile
+            </button>
             <button
               type="submit"
               className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition"
