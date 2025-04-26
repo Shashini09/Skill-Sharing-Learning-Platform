@@ -74,6 +74,20 @@ const Navbar = () => {
               >
                 Profile
               </Link>
+
+              <Link
+                to="/postfeed"
+                className="hover:text-gray-300 transition-colors px-2 py-1 rounded hover:bg-gray-700"
+              >
+                PostFeed
+              </Link>
+
+              <Link
+                to="/createpost"
+                className="hover:text-gray-300 transition-colors px-2 py-1 rounded hover:bg-gray-700"
+              >
+                CreatePost
+              </Link>
             </div>
           )}
         </div>
