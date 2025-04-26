@@ -135,7 +135,7 @@ const CreatePost = () => {
       for (let m of mediaFiles) {
         const formData = new FormData();
         formData.append('file', m.file);
-        const res = await axios.post('http://localhost:3001/api/posts/upload', formData, {
+        const res = await axios.post('http://localhost:8080/api/posts/upload', formData, {
           onUploadProgress: (p) => setUploadProgress(Math.round((p.loaded * 100) / p.total)),
           withCredentials: true
         });
@@ -143,7 +143,7 @@ const CreatePost = () => {
         mediaTypes.push(m.file.type.startsWith('video') ? 'video' : 'image');
       }
       const newPost = { ...post, mediaUrls, mediaTypes };
-      await axios.post('http://localhost:3001/api/posts/create', newPost, {
+      await axios.post('http://localhost:8080/api/posts/create', newPost, {
         withCredentials: true
       });
       toast.success('Post created!');

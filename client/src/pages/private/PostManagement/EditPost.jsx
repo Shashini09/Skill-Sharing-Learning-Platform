@@ -28,7 +28,7 @@ const EditPost = () => {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const res = await axios.get(`http://localhost:3001/api/posts/${id}`);
+        const res = await axios.get(`http://localhost:8080/api/posts/${id}`);
         setPost(res.data);
         setMediaFiles(
           res.data.mediaUrls.map((url, i) => ({
@@ -129,7 +129,7 @@ const EditPost = () => {
         const formData = new FormData();
         formData.append('file', newMedia[i].file);
 
-        const res = await axios.post("http://localhost:3001/api/posts/upload", formData);
+        const res = await axios.post("http://localhost:8080/api/posts/upload", formData);
         mediaUrls.push(res.data);
         mediaTypes.push(newMedia[i].file.type.startsWith('video') ? 'video' : 'image');
       }
@@ -137,7 +137,7 @@ const EditPost = () => {
       mediaUrls.push(...existingMedia.map(m => m.url));
       mediaTypes.push(...existingMedia.map(m => m.type));
 
-      await axios.put(`http://localhost:3001/api/posts/update/${id}`, {
+      await axios.put(`http://localhost:8080/api/posts/update/${id}`, {
         ...post,
         mediaUrls,
         mediaTypes

@@ -10,10 +10,10 @@ import "./App.css";
 import Register from "./pages/public/Register";
 import EditProfile from "./pages/private/EditProfile";
 
-import CommentPage from "./pages/private/Comment/Comment";
-import CreatePost from "./pages/private/Post/CreatePost";
-import EditPost  from "./pages/private/Post/EditPost";
-import PostFeed from "./pages/private/Post/PostFeed";
+//import CommentPage from "./pages/private/Comment/Comment";
+//import CreatePost from "./pages/private/Post/CreatePost";
+//import EditPost  from "./pages/private/Post/EditPost";
+//import PostFeed from "./pages/private/Post/PostFeed";
 
 import AllUsers from "./pages/private/AllUsers";
 import Following from "./pages/private/Following";
