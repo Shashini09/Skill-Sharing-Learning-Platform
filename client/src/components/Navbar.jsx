@@ -56,24 +56,31 @@ const Navbar = () => {
 
           {user && (
             <div className="flex space-x-4">
-
-<Link
+              <Link
                 to="/feed"
                 className="hover:text-gray-300 transition-colors px-2 py-1 rounded hover:bg-gray-700"
               >
-                Fedds
-              </Link>
-              <Link
-                to="/allusers"
-                className="hover:text-gray-300 transition-colors px-2 py-1 rounded hover:bg-gray-700"
-              >
-                Friends
+                Feed
               </Link>
               <Link
                 to="/profile"
                 className="hover:text-gray-300 transition-colors px-2 py-1 rounded hover:bg-gray-700"
               >
                 Profile
+              </Link>
+
+              <Link
+                to="/postfeed"
+                className="hover:text-gray-300 transition-colors px-2 py-1 rounded hover:bg-gray-700"
+              >
+                PostFeed
+              </Link>
+
+              <Link
+                to="/createpost"
+                className="hover:text-gray-300 transition-colors px-2 py-1 rounded hover:bg-gray-700"
+              >
+                CreatePost
               </Link>
             </div>
           )}
