@@ -10,6 +10,11 @@ import "./App.css";
 import Register from "./pages/public/Register";
 import EditProfile from "./pages/private/EditProfile";
 
+
+import CreateLearningPlan from "./pages/private/LearningPlans/CreateLearningPlan";
+import LearningPlanList from "./pages/private/LearningPlans/LearningPlansList";
+import EditLearningPlan from "./pages/private/LearningPlans/EditLearningPlan";
+
 //import CommentPage from "./pages/private/Comment/Comment";
 //import CreatePost from "./pages/private/Post/CreatePost";
 //import EditPost  from "./pages/private/Post/EditPost";
@@ -54,7 +59,9 @@ function App() {
             <Route path="/followers" element={<Followers />} />
             <Route path="/frendsprofile/:id" element={<FriendsProfile/>} />
             <Route path="/feed" element={<Feed />} />
-
+            <Route path="/learning-plans" element={<LearningPlanList />} />
+            <Route path="/create-learning-plans" element={<CreateLearningPlan />} />
+            <Route path="/edit-learning-plan/:id" component={<EditLearningPlan />} />
 
             <Route path="/createpost" element={<CreatePost />} />
             <Route path="/editpost" element={<EditPost/>} />
