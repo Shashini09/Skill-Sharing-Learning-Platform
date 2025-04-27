@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 export default function EditProfile() {
-  const { user } = useAuth();
+  const { user,logout } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -71,7 +71,9 @@ export default function EditProfile() {
           withCredentials: true,
         });
         alert("Profile deactivated successfully.");
-        navigate("/logout"); // Adjust to your logout route
+        logout();
+      navigate("/login");
+
       } catch (error) {
         console.error("Error deactivating profile:", error);
         alert(`An error occurred: ${error.response?.data?.message || error.message}`);
