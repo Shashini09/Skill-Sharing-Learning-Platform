@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 export default function EditProfile() {
-  const { user,logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -14,17 +14,45 @@ export default function EditProfile() {
     about: '',
     picture: '',
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Populate form with current user info
+  // Fetch user data from backend
   useEffect(() => {
-    if (user) {
-      setFormData({
-        name: user.name || '',
-        email: user.email || '',
-        birthday: user.birthday ? new Date(user.birthday).toISOString().split('T')[0] : '',
-        about: user.about || '',
-        picture: user.picture || '',
-      });
+    if (user && user.id) {
+      const fetchUserData = async () => {
+        try {
+          setLoading(true);
+          const response = await axios.get(`http://localhost:8080/users/${user.id}`, {
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          const userData = response.data;
+          setFormData({
+            name: userData.name || '',
+            email: userData.email || '',
+            birthday: userData.birthday ? new Date(userData.birthday).toISOString().split('T')[0] : '',
+            about: userData.about || '',
+            picture: userData.picture || '',
+          });
+          setLoading(false);
+        } catch (err) {
+          console.error('Error fetching user data:', err);
+          setError('Failed to load user data. Please try again.');
+          setLoading(false);
+          // Fallback to AuthContext user data
+          setFormData({
+            name: user.name || '',
+            email: user.email || '',
+            birthday: user.birthday ? new Date(user.birthday).toISOString().split('T')[0] : '',
+            about: user.about || '',
+            picture: user.picture || '',
+          });
+        }
+      };
+      fetchUserData();
     }
   }, [user]);
 
@@ -42,12 +70,14 @@ export default function EditProfile() {
     try {
       // Prepare JSON payload matching the User model
       const payload = {
-        name: formData.name,
-        email: formData.email,
-        birthday: formData.birthday ? new Date(formData.birthday).toISOString() : null,
-        about: formData.about,
-        picture: formData.picture, // Treated as a URL string
+        name: formData.name || user.name || '',
+        email: formData.email || user.email || '',
+        birthday: formData.birthday ? new Date(formData.birthday).toISOString() : user.birthday ? new Date(user.birthday).toISOString() : null,
+        about: formData.about || user.about || '',
+        picture: formData.picture || user.picture || '',
       };
+
+      console.log('Payload being sent:', payload); // Debug log to inspect payload
 
       await axios.put(`http://localhost:8080/users/${user.id}`, payload, {
         withCredentials: true,
@@ -72,8 +102,7 @@ export default function EditProfile() {
         });
         alert("Profile deactivated successfully.");
         logout();
-      navigate("/login");
-
+        navigate("/login");
       } catch (error) {
         console.error("Error deactivating profile:", error);
         alert(`An error occurred: ${error.response?.data?.message || error.message}`);
@@ -85,6 +114,16 @@ export default function EditProfile() {
     <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-xl mx-auto bg-white p-8 shadow-lg rounded-lg">
         <h2 className="text-2xl font-bold mb-6 text-gray-800 text-center">Edit Profile</h2>
+        {loading && (
+          <div className="text-center text-gray-600">
+            <p>Loading user data...</p>
+          </div>
+        )}
+        {error && (
+          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md mb-6">
+            <p>{error}</p>
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Profile Picture URL */}
           <div>
