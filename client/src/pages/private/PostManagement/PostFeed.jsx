@@ -10,7 +10,7 @@ const PostFeed = () => {
 
   const fetchPosts = async () => {
     try {
-      const res = await axios.get('http://localhost:3001/api/posts/all', { withCredentials: true });
+      const res = await axios.get('http://localhost:8080/api/posts/all', { withCredentials: true });
       setPosts(res.data);
     } catch (err) {
       toast.error('Failed to fetch posts');
@@ -20,7 +20,7 @@ const PostFeed = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this post?')) {
       try {
-        await axios.delete(`http://localhost:3001/api/posts/delete/${id}`, { withCredentials: true });
+        await axios.delete(`http://localhost:8080/api/posts/delete/${id}`, { withCredentials: true });
         fetchPosts();
         toast.success('Post deleted');
       } catch (err) {
@@ -49,7 +49,7 @@ const PostFeed = () => {
 
   const handleUpdate = async (id) => {
     try {
-      await axios.put(`http://localhost:3001/api/posts/update/${id}`, editValues, {
+      await axios.put(`http://localhost:8080/api/posts/update/${id}`, editValues, {
         withCredentials: true
       });
       setEditingPostId(null);
