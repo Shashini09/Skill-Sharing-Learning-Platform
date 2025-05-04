@@ -16,6 +16,7 @@ export default function EditProfile() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [validationErrors, setValidationErrors] = useState({});
 
   // Fetch user data from backend
   useEffect(() => {
@@ -56,16 +57,72 @@ export default function EditProfile() {
     }
   }, [user]);
 
+  const validateForm = () => {
+    const errors = {};
+
+    // Name validation
+    if (!formData.name || formData.name.trim().length < 2) {
+      errors.name = 'Name is required and must be at least 2 characters long';
+    }
+
+    // Birthday validation
+    if (formData.birthday) {
+      const birthDate = new Date(formData.birthday);
+      if (isNaN(birthDate.getTime())) {
+        errors.birthday = 'Invalid date format';
+      } else {
+        const today = new Date();
+        // Check if birthday is in the future
+        if (birthDate > today) {
+          errors.birthday = 'Birthday cannot be a future date';
+        } else {
+          // Check age (at least 13 years old)
+          let age = today.getFullYear() - birthDate.getFullYear();
+          const monthDiff = today.getMonth() - birthDate.getMonth();
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+          }
+          if (age < 13) {
+            errors.birthday = 'You must be at least 13 years old';
+          }
+        }
+      }
+    }
+
+    // About validation
+    if (formData.about && formData.about.length > 500) {
+      errors.about = 'About section cannot exceed 500 characters';
+    }
+
+    // Picture validation
+    if (formData.picture) {
+      const urlPattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)?$/;
+      if (!urlPattern.test(formData.picture)) {
+        errors.picture = 'Please enter a valid URL';
+      }
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value,
     }));
+    // Clear validation error for the field being edited
+    setValidationErrors(prev => ({ ...prev, [name]: '' }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!validateForm()) {
+      alert('Please fix the errors in the form before submitting.');
+      return;
+    }
 
     try {
       // Prepare JSON payload matching the User model
@@ -139,6 +196,9 @@ export default function EditProfile() {
               placeholder="https://example.com/image.jpg"
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
             />
+            {validationErrors.picture && (
+              <p className="mt-1 text-sm text-red-600">{validationErrors.picture}</p>
+            )}
             {formData.picture && (
               <div className="mt-2">
                 <img
@@ -165,6 +225,9 @@ export default function EditProfile() {
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
               required
             />
+            {validationErrors.name && (
+              <p className="mt-1 text-sm text-red-600">{validationErrors.name}</p>
+            )}
           </div>
 
           {/* Email */}
@@ -177,9 +240,8 @@ export default function EditProfile() {
               id="email"
               name="email"
               value={formData.email}
-              onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-              required
+              disabled
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 bg-gray-100 cursor-not-allowed"
             />
           </div>
 
@@ -196,6 +258,9 @@ export default function EditProfile() {
               onChange={handleChange}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
             />
+            {validationErrors.birthday && (
+              <p className="mt-1 text-sm text-red-600">{validationErrors.birthday}</p>
+            )}
           </div>
 
           {/* About */}
@@ -211,6 +276,9 @@ export default function EditProfile() {
               rows="4"
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
             />
+            {validationErrors.about && (
+              <p className="mt-1 text-sm text-red-600">{validationErrors.about}</p>
+            )}
           </div>
 
           {/* Buttons */}

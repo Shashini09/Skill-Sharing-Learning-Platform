@@ -3,11 +3,12 @@ import { useAuth } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 
 const Navbar = () => {
-  const { user, loading, login, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutError, setLogoutError] = useState(null);
 
+  // Handle logout action
   const handleLogout = async () => {
     setIsLoggingOut(true);
     setLogoutError(null);
@@ -23,14 +24,7 @@ const Navbar = () => {
     }
   };
 
-  const handleLogin = (provider) => {
-    try {
-      login(provider);
-    } catch (error) {
-      console.error("Login error:", error);
-    }
-  };
-
+  // Show loading state with skeleton placeholders
   if (loading) {
     return (
       <div className="bg-gray-800 text-white p-4">
@@ -55,14 +49,8 @@ const Navbar = () => {
           </Link>
 
           {user && (
-            <div className="flex space-x-4">
-
-<Link
-                to="/feed"
-                className="hover:text-gray-300 transition-colors px-2 py-1 rounded hover:bg-gray-700"
-              >
-                Fedds
-              </Link>
+            <div className="flex flex-wrap space-x-4">
+              
               <Link
                 to="/allusers"
                 className="hover:text-gray-300 transition-colors px-2 py-1 rounded hover:bg-gray-700"
@@ -74,6 +62,18 @@ const Navbar = () => {
                 className="hover:text-gray-300 transition-colors px-2 py-1 rounded hover:bg-gray-700"
               >
                 Profile
+              </Link>
+              <Link
+                to="/postfeed"
+                className="hover:text-gray-300 transition-colors px-2 py-1 rounded hover:bg-gray-700"
+              >
+                PostFeed
+              </Link>
+              <Link
+                to="/createpost"
+                className="hover:text-gray-300 transition-colors px-2 py-1 rounded hover:bg-gray-700"
+              >
+                CreatePost
               </Link>
             </div>
           )}
@@ -147,11 +147,19 @@ const Navbar = () => {
               </button>
             </div>
           ) : (
-            <div>
-              <Link to="/login" className="me-5">
+            <div className="flex space-x-4">
+              <Link
+                to="/login"
+                className="hover:text-gray-300 transition-colors px-2 py-1 rounded hover:bg-gray-700"
+              >
                 Login
               </Link>
-              <Link to="/register">Register</Link>
+              <Link
+                to="/register"
+                className="hover:text-gray-300 transition-colors px-2 py-1 rounded hover:bg-gray-700"
+              >
+                Register
+              </Link>
             </div>
           )}
         </div>
