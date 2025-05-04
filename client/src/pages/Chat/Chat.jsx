@@ -220,14 +220,16 @@ const Chat = () => {
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-6 rounded-lg shadow-md max-w-md w-full">
+        <div className="bg-blue-50 border-l-4 border-blue-400 text-blue-800 p-6 rounded-lg shadow-md max-w-md w-full">
           <div className="flex items-center">
-            <AlertCircle className="h-5 w-5 mr-2" />
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
             <p className="font-medium">Please login to join the chat</p>
           </div>
           <Link 
             to="/login" 
-            className="mt-4 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors duration-300"
+            className="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-300"
           >
             Go to Login
           </Link>
@@ -237,19 +239,19 @@ const Chat = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-sky-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-xl overflow-hidden flex flex-col h-[calc(100vh-4rem)]">
         {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 sm:p-6">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-500 p-4 sm:p-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-white">CookBook Community Chat</h1>
               <div className="flex items-center mt-1">
                 <span className={`h-2 w-2 rounded-full ${
-                  connectionStatus === 'connected' ? 'bg-green-400' : 
+                  connectionStatus === 'connected' ? 'bg-blue-300' : 
                   connectionStatus === 'connecting' ? 'bg-yellow-400' : 'bg-red-500'
                 } mr-2`}></span>
-                <p className="text-indigo-100 text-sm">
+                <p className="text-blue-100 text-sm">
                   {connectionStatus === 'connected' ? 'Online' : 
                    connectionStatus === 'connecting' ? 'Connecting...' : 'Disconnected'}
                 </p>
@@ -257,8 +259,8 @@ const Chat = () => {
             </div>
             <div className="flex items-center bg-white/20 rounded-full px-3 py-1">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
               <span className="text-white text-sm font-medium">{user.name}</span>
             </div>
           </div>
@@ -266,7 +268,7 @@ const Chat = () => {
 
         {/* Error message */}
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-3 flex items-center justify-between">
+          <div className="bg-red-50 border-l-4 border-red-400 text-red-700 p-3 flex items-center justify-between">
             <div className="flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -289,7 +291,7 @@ const Chat = () => {
         {isLoading && (
           <div className="flex-1 flex items-center justify-center bg-gray-50">
             <div className="text-center">
-              <div className="w-12 h-12 border-4 border-indigo-300 border-t-indigo-600 rounded-full animate-spin mx-auto"></div>
+              <div className="w-12 h-12 border-4 border-blue-300 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
               <p className="mt-3 text-gray-600">Loading messages...</p>
             </div>
           </div>
@@ -303,10 +305,10 @@ const Chat = () => {
           >
             {messages.length === 0 && !error && (
               <div className="flex flex-col items-center justify-center h-full text-center">
-                <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                </svg>
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
                 </div>
                 <p className="text-gray-500">No messages yet. Start the conversation!</p>
               </div>
@@ -333,8 +335,8 @@ const Chat = () => {
                       className={`flex ${isFromCurrentUser ? 'justify-end' : 'justify-start'}`}
                     >
                       {!isFromCurrentUser && (
-                        <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center mr-2 flex-shrink-0">
-                          <span className="text-indigo-600 font-medium text-sm">{getInitial(msg.senderName)}</span>
+                        <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center mr-2 flex-shrink-0">
+                          <span className="text-blue-700 font-medium text-sm">{getInitial(msg.senderName)}</span>
                         </div>
                       )}
                       
@@ -346,8 +348,8 @@ const Chat = () => {
                         <div
                           className={`px-4 py-3 rounded-2xl ${
                             isFromCurrentUser
-                              ? 'bg-indigo-600 text-white rounded-br-none'
-                              : 'bg-gray-100 text-gray-800 rounded-bl-none'
+                              ? 'bg-blue-600 text-white rounded-br-none'
+                              : 'bg-blue-100 text-blue-900 rounded-bl-none'
                           }`}
                         >
                           <p className="whitespace-pre-wrap break-words">{msg.content}</p>
@@ -359,7 +361,7 @@ const Chat = () => {
                       </div>
                       
                       {isFromCurrentUser && (
-                        <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center ml-2 flex-shrink-0">
+                        <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center ml-2 flex-shrink-0">
                           <span className="text-white font-medium text-sm">{getInitial(user.name)}</span>
                         </div>
                       )}
@@ -382,13 +384,13 @@ const Chat = () => {
               onChange={(e) => setMessageInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Type your message..."
-              className="flex-1 p-3 bg-gray-100 border border-transparent rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-indigo-300 transition-all duration-300"
+              className="flex-1 p-3 bg-blue-50 border border-transparent rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-blue-300 transition-all duration-300"
               disabled={connectionStatus !== 'connected'}
             />
             <button
               type="submit"
               disabled={!messageInput.trim() || connectionStatus !== 'connected'}
-              className="p-3 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />

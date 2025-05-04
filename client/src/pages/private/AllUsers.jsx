@@ -7,18 +7,16 @@ export default function AllUsers({ currentUser }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [followError, setFollowError] = useState(null);
-  const [isProcessing, setIsProcessing] = useState({}); // Track processing state for each user
+  const [isProcessing, setIsProcessing] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
 
-  // Fetch users when component mounts
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const response = await axios.get('http://localhost:8080/users', {
           withCredentials: true,
         });
-        // Map users to include isFollowed based on currentUser's following list
         const updatedUsers = response.data.map(user => ({
           ...user,
           isFollowed: currentUser?.following?.includes(user.id) || false,
@@ -35,15 +33,12 @@ export default function AllUsers({ currentUser }) {
     fetchUsers();
   }, [currentUser]);
 
-  // Handle follow/unfollow button click with optimistic updates
   const handleFollowToggle = async (userId, isFollowed) => {
-    // Prevent multiple clicks
     if (isProcessing[userId]) return;
 
     setFollowError(null);
     setIsProcessing(prev => ({ ...prev, [userId]: true }));
 
-    // Optimistically update the UI
     const previousUsers = [...users];
     setUsers(users.map(user =>
       user.id === userId ? { ...user, isFollowed: !isFollowed } : user
@@ -51,19 +46,16 @@ export default function AllUsers({ currentUser }) {
 
     try {
       if (isFollowed) {
-        // Send POST request to unfollow endpoint
         await axios.post(`http://localhost:8080/users/${userId}/unfollow`, null, {
           withCredentials: true,
         });
       } else {
-        // Send POST request to follow endpoint
         await axios.post(`http://localhost:8080/users/${userId}/follow`, null, {
           withCredentials: true,
         });
       }
     } catch (err) {
       console.error(`${isFollowed ? 'Unfollow' : 'Follow'} failed:`, err);
-      // Revert optimistic update on error
       setUsers(previousUsers);
       const errorMessage = err.response?.data || `Could not ${isFollowed ? 'unfollow' : 'follow'} user: Unknown error`;
       setFollowError(errorMessage);
@@ -72,7 +64,6 @@ export default function AllUsers({ currentUser }) {
     }
   };
 
-  // Filter and search functionality
   const filteredUsers = users
     .filter((dbUser) => dbUser.id !== currentUser?.id)
     .filter((dbUser) => 
@@ -90,7 +81,7 @@ export default function AllUsers({ currentUser }) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="p-8 rounded-lg shadow-md bg-white text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-teal-500 border-t-transparent mb-4"></div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-yellow-600 border-t-transparent mb-4"></div>
           <p className="text-gray-700">Loading users...</p>
         </div>
       </div>
@@ -107,7 +98,7 @@ export default function AllUsers({ currentUser }) {
           <p className="text-red-500 font-medium">{error}</p>
           <button 
             onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 transition-colors"
+            className="mt-4 px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-500 transition-colors"
           >
             Try Again
           </button>
@@ -120,9 +111,9 @@ export default function AllUsers({ currentUser }) {
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6">
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-xl shadow-md overflow-hidden mb-8">
-          <div className="bg-teal-500 p-6">
+          <div className="bg-yellow-600 p-6">
             <h1 className="text-2xl font-bold text-white">Connect with People</h1>
-            <p className="text-teal-100 mt-1">
+            <p className="text-yellow-100 mt-1">
               Discover and follow other users to see their content
             </p>
           </div>
@@ -142,7 +133,6 @@ export default function AllUsers({ currentUser }) {
             </div>
           )}
           
-          {/* Search and Filter Bar */}
           <div className="p-6 border-b border-gray-200">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
               <div className="relative flex-1 max-w-md">
@@ -154,18 +144,18 @@ export default function AllUsers({ currentUser }) {
                 <input
                   type="text"
                   placeholder="Search by name or email"
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-yellow-600 focus:border-transparent"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
               
-              <div className="flex space-x-2">
+              <div className_updates="flex space-x-2">
                 <button
                   onClick={() => setSelectedFilter('all')}
                   className={`px-4 py-2 rounded-lg ${
                     selectedFilter === 'all' 
-                      ? 'bg-teal-500 text-white' 
+                      ? 'bg-yellow-600 text-white' 
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -175,7 +165,7 @@ export default function AllUsers({ currentUser }) {
                   onClick={() => setSelectedFilter('following')}
                   className={`px-4 py-2 rounded-lg ${
                     selectedFilter === 'following' 
-                      ? 'bg-teal-500 text-white' 
+                      ? 'bg-yellow-600 text-white' 
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -185,7 +175,7 @@ export default function AllUsers({ currentUser }) {
                   onClick={() => setSelectedFilter('not-following')}
                   className={`px-4 py-2 rounded-lg ${
                     selectedFilter === 'not-following' 
-                      ? 'bg-teal-500 text-white' 
+                      ? 'bg-yellow-600 text-white' 
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -223,14 +213,14 @@ export default function AllUsers({ currentUser }) {
                         onError={(e) => (e.target.src = 'https://via.placeholder.com/100')}
                       />
                     ) : (
-                      <div className="h-16 w-16 rounded-full bg-teal-100 flex items-center justify-center text-teal-800 text-xl font-bold">
+                      <div className="h-16 w-16 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600 text-xl font-bold">
                         {dbUser.name.charAt(0).toUpperCase()}
                       </div>
                     )}
                     <div className="flex-1">
                       <Link
                         to={`/profile/${dbUser.id}`}
-                        className="text-lg font-medium text-gray-900 hover:text-teal-600"
+                        className="text-lg font-medium text-gray-900 hover:text-yellow-600"
                       >
                         {dbUser.name}
                       </Link>
@@ -243,7 +233,7 @@ export default function AllUsers({ currentUser }) {
                   <div className="mt-6 flex items-center justify-between">
                     <Link
                       to={`/profile/${dbUser.id}`}
-                      className="text-sm text-teal-600 hover:text-teal-700 font-medium"
+                      className="text-sm text-yellow-600 hover:text-yellow-500 font-medium"
                     >
                       View Profile
                     </Link>
@@ -254,8 +244,8 @@ export default function AllUsers({ currentUser }) {
                       className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                         dbUser.isFollowed
                           ? 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                          : 'bg-teal-500 text-white hover:bg-teal-600'
-                      } disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500`}
+                          : 'bg-yellow-600 text-white hover:bg-yellow-500'
+                      } disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-600`}
                     >
                       {isProcessing[dbUser.id] ? (
                         <svg
