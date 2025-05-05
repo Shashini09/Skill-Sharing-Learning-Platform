@@ -6,37 +6,240 @@ import axios from 'axios';
 const Profile = () => {
   const { user, logout } = useAuth();
   const [dbUser, setDbUser] = useState(null);
+  const [posts, setPosts] = useState([]);
+  const [followers, setFollowers] = useState([]);
+  const [following, setFollowing] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('posts');
   const navigate = useNavigate();
 
   useEffect(() => {
     if (user && user.id) {
-      const fetchUser = async () => {
+      const fetchUserAndActivity = async () => {
         try {
-          const response = await axios.get(`http://localhost:8080/users/${user.id}`, {
+          // Fetch user data
+          console.log('Fetching user data for ID:', user.id);
+          const userResponse = await axios.get(`http://localhost:8080/users/${user.id}`, {
             withCredentials: true,
           });
-          setDbUser(response.data);
+          console.log('User data fetched:', userResponse.data);
+          setDbUser(userResponse.data);
+
+          // Fetch posts
+          console.log('Fetching posts from /api/posts/all');
+          const postsResponse = await axios.get('http://localhost:8080/api/posts/all', {
+            withCredentials: true,
+          });
+          console.log('Posts fetched:', postsResponse.data);
+          const userPosts = postsResponse.data
+            .filter(post => post.userId === user.id)
+            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+          console.log('Filtered and sorted user posts:', userPosts);
+          setPosts(userPosts);
+
+          // Fetch followers
+          try {
+            const followersResponse = await axios.get(`http://localhost:8080/users/${user.id}/followers`, {
+              withCredentials: true,
+            });
+            console.log('Followers fetched:', followersResponse.data);
+            setFollowers(followersResponse.data || []);
+          } catch (followersErr) {
+            console.error('Error fetching followers:', followersErr);
+            setFollowers([]);
+          }
+
+          // Fetch following using the correct endpoint for the current user
+          try {
+            const followingResponse = await axios.get(`http://localhost:8080/users/me/following`, {
+              withCredentials: true,
+            });
+            console.log('Following fetched:', followingResponse.data);
+            setFollowing(followingResponse.data || []);
+          } catch (followingErr) {
+            console.error('Error fetching following:', followingErr);
+            setFollowing([]);
+          }
+
           setLoading(false);
         } catch (err) {
-          console.error("Error fetching user:", err);
-          setError("Failed to load profile data. Please try again.");
+          console.error('Error fetching data:', err.response || err.message);
+          setError("Failed to load profile or posts. Please check your connection or login status.");
           setLoading(false);
         }
       };
-      fetchUser();
+      fetchUserAndActivity();
     } else {
+      console.log('No user or user.id found, setting loading to false');
+      setError('Please log in to view your profile.');
       setLoading(false);
     }
   }, [user]);
 
   const handleLogout = async () => {
     try {
+      console.log('Logging out user');
       await logout();
       navigate("/login");
     } catch (err) {
-      console.error("Error logging out:", err);
+      console.error('Error logging out:', err);
+      setError('Failed to log out. Please try again.');
+    }
+  };
+
+  const renderActivityContent = () => {
+    switch(activeTab) {
+      case 'posts':
+        return (
+          <div className="space-y-4">
+            {posts.length === 0 ? (
+              <div className="text-center py-6">
+                <div className="mx-auto h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                </div>
+                <p className="text-gray-600 text-sm mb-3">You haven't posted anything yet.</p>
+                <Link 
+                  to="/createpost" 
+                  className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                  </svg>
+                  Create Your First Post
+                </Link>
+              </div>
+            ) : (
+              posts.map(post => (
+                <div key={post.id} className="border border-gray-200 rounded-lg p-3 hover:shadow-sm transition-shadow">
+                  <h3 className="text-base font-semibold text-gray-800">{post.topic}</h3>
+                  <p className="text-sm text-gray-600 mt-1">{post.description}</p>
+                  {post.mediaUrls && post.mediaUrls.length > 0 && (
+                    <div className="mt-2 flex space-x-2 overflow-x-auto py-1">
+                      {post.mediaUrls.map((url, index) => (
+                        <img
+                          key={index}
+                          src={url}
+                          alt={`Post media ${index + 1}`}
+                          className="h-20 w-20 object-cover rounded-md shadow-sm"
+                          onError={(e) => (e.target.src = '/placeholder-image.jpg')}
+                        />
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
+                    <span>Posted on {new Date(post.timestamp).toLocaleDateString()}</span>
+                    {post.location && (
+                      <span className="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        {post.location}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        );
+      case 'followers':
+        return (
+          <div className="py-2">
+            {followers.length === 0 ? (
+              <div className="text-center py-6">
+                <div className="mx-auto h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                </div>
+                <p className="text-gray-600 text-sm">You don't have any followers yet.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {followers.map(follower => (
+                  <div key={follower.id} className="flex items-center p-2 hover:bg-gray-50 rounded-lg">
+                    <div className="flex-shrink-0 mr-3">
+                      {follower.picture ? (
+                        <img 
+                          src={follower.picture} 
+                          alt={follower.name} 
+                          className="h-10 w-10 rounded-full object-cover"
+                          onError={(e) => (e.target.src = '/placeholder-image.jpg')}
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                          {follower.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{follower.name}</p>
+                      <p className="text-xs text-gray-500 truncate">{follower.email}</p>
+                    </div>
+                    <Link
+                      to={`/frendsprofile/${follower.id}`}
+                      className="ml-2 flex-shrink-0 bg-gray-100 text-gray-800 text-xs font-medium py-1 px-2 rounded hover:bg-gray-200 transition-colors"
+                    >
+                      View Profile
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      case 'following':
+        return (
+          <div className="py-2">
+            {following.length === 0 ? (
+              <div className="text-center py-6">
+                <div className="mx-auto h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                </div>
+                <p className="text-gray-600 text-sm">You're not following anyone yet.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {following.map(person => (
+                  <div key={person.id} className="flex items-center p-2 hover:bg-gray-50 rounded-lg">
+                    <div className="flex-shrink-0 mr-3">
+                      {person.picture ? (
+                        <img 
+                          src={person.picture} 
+                          alt={person.name} 
+                          className="h-10 w-10 rounded-full object-cover"
+                          onError={(e) => (e.target.src = '/placeholder-image.jpg')}
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                          {person.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{person.name}</p>
+                      <p className="text-xs text-gray-500 truncate">{person.email}</p>
+                    </div>
+                    <Link
+                      to={`/frendsprofile/${person.id}`}
+                      className="ml-2 flex-shrink-0 bg-gray-100 text-gray-800 text-xs font-medium py-1 px-2 rounded hover:bg-gray-200 transition-colors"
+                    >
+                      View Profile
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      default:
+        return null;
     }
   };
 
@@ -79,29 +282,42 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
+    <div className="min-h-screen bg-gray-50 py-6 px-4">
       <div className="max-w-4xl mx-auto">
-        {/* Profile Header */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <div className="flex flex-col md:flex-row items-center">
+            {/* Profile picture section */}
             <div className="mb-4 md:mb-0 md:mr-6">
               {dbUser.picture ? (
                 <img
                   src={dbUser.picture}
                   alt="Profile"
-                  className="h-24 w-24 rounded-full object-cover border-4 border-blue-100"
+                  className="h-20 w-20 rounded-full object-cover border-4 border-blue-100"
                   onError={(e) => (e.target.src = '/placeholder-image.jpg')}
                 />
               ) : (
-                <div className="h-24 w-24 rounded-full bg-blue-600 flex items-center justify-center text-white text-3xl font-bold">
+                <div className="h-20 w-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-bold">
                   {dbUser.name.charAt(0).toUpperCase()}
                 </div>
               )}
             </div>
+            {/* Profile details section with followers and following counts */}
             <div className="text-center md:text-left flex-1">
+              {/* Display user's name */}
               <h1 className="text-2xl font-bold text-gray-800">{dbUser.name}</h1>
+              {/* Display user's email */}
               <p className="text-gray-600">{dbUser.email}</p>
-              {dbUser.about && <p className="mt-2 text-gray-700">{dbUser.about}</p>}
+              {/* Display user's birthday */}
+              <p className="text-gray-600 text-sm">
+                Birthday: {dbUser.birthday
+                  ? new Date(dbUser.birthday).toLocaleDateString()
+                  : "Not provided"}
+              </p>
+              {/* Display followers and following counts with fallback for empty or undefined data */}
+              
+              {/* Display user's about section if available */}
+              {dbUser.about && <p className="mt-2 text-sm text-gray-700">{dbUser.about}</p>}
+              {/* Display authentication provider */}
               <div className="mt-2">
                 <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
                   {dbUser.provider
@@ -110,132 +326,181 @@ const Profile = () => {
                 </span>
               </div>
             </div>
+            {/* Edit profile button */}
+            <div className="mt-4 md:mt-0 md:ml-4">
+              <Link 
+                to={`/editprofile/${user.id}`} 
+                className="flex items-center justify-center px-4 py-2 bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors text-sm border border-blue-200"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                </svg>
+                Edit Profile
+              </Link>
+            </div>
           </div>
-          
-          {/* Activity Summary */}
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Activity Summary</h2>
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div className="bg-gray-50 rounded-lg p-3">
-                <p className="text-gray-500 text-sm">Posts</p>
-                <p className="text-xl font-bold text-gray-700">0</p>
+          <div className="mt-5 pt-5 border-t border-gray-200">
+            <h2 className="text-base font-medium text-gray-800 mb-3">Activity Snapshot</h2>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-3 transition-all hover:shadow hover:border-blue-200">
+                <div className="flex items-center">
+                  <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 mr-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M2 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 002 2H4a2 2 0 01-2-2V5zm3 1h6v4H5V6zm6 6H5v2h6v-2z" clipRule="evenodd" />
+                      <path d="M15 7h1a2 2 0 012 2v5.5a1.5 1.5 0 01-3 0V7z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-xs font-medium">Posts</p>
+                    <div className="flex items-end">
+                      <p className="text-lg font-bold text-gray-800">{posts.length}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="bg-gray-50 rounded-lg p-3">
-                <p className="text-gray-500 text-sm">Followers</p>
-                <p className="text-xl font-bold text-gray-700">0</p>
+              <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-3 transition-all hover:shadow hover:border-blue-200">
+                <div className="flex items-center">
+                  <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 mr-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-xs font-medium">Followers</p>
+                    <div className="flex items-end">
+                      <p className="text-lg font-bold text-gray-800">{followers.length}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="bg-gray-50 rounded-lg p-3">
-                <p className="text-gray-500 text-sm">Following</p>
-                <p className="text-xl font-bold text-gray-700">0</p>
+              <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-3 transition-all hover:shadow hover:border-blue-200">
+                <div className="flex items-center">
+                  <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 mr-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                      <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-xs font-medium">Following</p>
+                    <div className="flex items-end">
+                      <p className="text-lg font-bold text-gray-800">{following.length}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
+            </div>
+          </div>
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="flex flex-wrap gap-2">
+              <Link 
+                to="/chat" 
+                className="flex items-center px-3 py-1.5 bg-gray-50 text-gray-700 rounded-md text-xs font-medium hover:bg-gray-100 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
+                </svg>
+                Messages
+              </Link>
+              <Link 
+                to="/createpost" 
+                className="flex items-center px-3 py-1.5 bg-gray-50 text-gray-700 rounded-md text-xs font-medium hover:bg-gray-100 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                </svg>
+                New Post
+              </Link>
+              <button 
+                onClick={handleLogout}
+                className="flex items-center px-3 py-1.5 bg-red-50 text-red-600 rounded-md text-xs font-medium hover:bg-red-100 transition-colors ml-auto"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H3zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd" />
+                </svg>
+                Sign Out
+              </button>
             </div>
           </div>
         </div>
-
-        <div className="grid md:grid-cols-3 gap-6">
-          {/* Personal Information */}
-          <div className="md:col-span-2">
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Personal Information</h2>
-              <div className="space-y-3">
-                <div className="flex flex-col sm:flex-row sm:justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-500 font-medium mb-1 sm:mb-0">Full Name</span>
-                  <span className="text-gray-800">{dbUser.name}</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-500 font-medium mb-1 sm:mb-0">Email</span>
-                  <span className="text-gray-800">{dbUser.email}</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-500 font-medium mb-1 sm:mb-0">Birthday</span>
-                  <span className="text-gray-800">
-                    {dbUser.birthday
-                      ? new Date(dbUser.birthday).toLocaleDateString()
-                      : "Not provided"}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Account Information</h2>
-              <div className="space-y-3">
-                <div className="flex flex-col sm:flex-row sm:justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-500 font-medium mb-1 sm:mb-0">Sign-in Method</span>
-                  <span className="text-gray-800">
-                    {dbUser.provider
-                      ? `${dbUser.provider.charAt(0).toUpperCase() + dbUser.provider.slice(1)} OAuth`
-                      : "Email/Password"}
-                  </span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-500 font-medium mb-1 sm:mb-0">Account ID</span>
-                  <span className="text-gray-800 font-mono text-sm">{dbUser.id}</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-500 font-medium mb-1 sm:mb-0">Status</span>
-                  <span className="inline-flex items-center">
-                    <span className="h-2 w-2 rounded-full bg-green-500 mr-2"></span>
-                    <span className="text-gray-800">Active</span>
-                  </span>
-                </div>
-              </div>
-            </div>
+        <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+          <div className="flex border-b border-gray-200">
+            <Link
+              to="/profile"
+              className={`flex-1 py-3 text-sm font-medium text-center ${
+                activeTab === 'posts'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+              onClick={() => setActiveTab('posts')}
+            >
+              Posts ({posts.length})
+            </Link>
+            <Link
+              to="/followers"
+              className={`flex-1 py-3 text-sm font-medium text-center ${
+                activeTab === 'followers'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+              onClick={() => setActiveTab('followers')}
+            >
+              Followers ({followers.length})
+            </Link>
+            <Link
+              to="/following"
+              className={`flex-1 py-3 text-sm font-medium text-center ${
+                activeTab === 'following'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+              onClick={() => setActiveTab('following')}
+            >
+              Following ({following.length})
+            </Link>
           </div>
-
-          {/* Actions */}
-          <div className="md:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Actions</h2>
-              <div className="flex flex-col space-y-3">
-                <Link 
-                  to="/chat" 
-                  className="flex items-center justify-center px-4 py-2 bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
-                  </svg>
-                  Chat
-                </Link>
-                <Link 
-                  to="/followers" 
-                  className="flex items-center justify-center px-4 py-2 bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-                  </svg>
-                  Followers
-                </Link>
-                <Link 
-                  to="/following" 
-                  className="flex items-center justify-center px-4 py-2 bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v1h8v-1zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-1a2 2 0 00-2-2h-4a2 2 0 00-2 2v1h8z" />
-                  </svg>
-                  Following
-                </Link>
-                <Link 
-                  to={`/editprofile/${user.id}`} 
-                  className="flex items-center justify-center px-4 py-2 bg-gray-50 text-gray-700 rounded-md hover:bg-gray-100 transition-colors"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                  </svg>
-                  Edit Profile
-                </Link>
-                <button 
-                  onClick={handleLogout}
-                  className="flex items-center justify-center px-4 py-2 bg-red-50 text-red-700 rounded-md hover:bg-red-100 transition-colors mt-4"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H3zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd" />
-                  </svg>
-                  Sign Out
-                </button>
-              </div>
-            </div>
+          <div className="p-4">
+            {renderActivityContent()}
           </div>
+          {activeTab === 'posts' && (
+            <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
+              <Link 
+                to="/createpost" 
+                className="flex items-center justify-center w-full text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                </svg>
+                Create New Post
+              </Link>
+            </div>
+          )}
+          {activeTab === 'followers' && followers.length > 0 && (
+            <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
+              <Link 
+                to="/allusers" 
+                className="flex items-center justify-center w-full text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                </svg>
+                Find More People
+              </Link>
+            </div>
+          )}
+          {activeTab === 'following' && following.length > 0 && (
+            <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
+              <Link 
+                to="/allusers" 
+                className="flex items-center justify-center w-full text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
+                </svg>
+                Find More People to Follow
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>

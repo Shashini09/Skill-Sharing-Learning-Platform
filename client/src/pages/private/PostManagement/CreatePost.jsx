@@ -1,15 +1,9 @@
-// CreatePost.jsx
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from "../../../context/AuthContext";
-
-const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB
-const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
-const MAX_FILES = 5;
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'video/mp4'];
 
 const CreatePost = () => {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -18,7 +12,7 @@ const CreatePost = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  console.log(user);
+  console.log('User:', user);
   
   const [post, setPost] = useState({
     userId: '',
@@ -35,29 +29,20 @@ const CreatePost = () => {
   const [mediaFiles, setMediaFiles] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const topicWordCount = post.topic.trim().split(/\s+/).filter(Boolean).length;
-  const descriptionWordCount = post.description.trim().split(/\s+/).filter(Boolean).length;
-
-  // Validate form: topic, description, and userId must be present
-  const isFormValid = post.userId && post.topic && topicWordCount <= 20 && post.description && descriptionWordCount <= 50;
-
   // Initialize userId and timestamp on component mount
   useEffect(() => {
-    const userId = localStorage.getItem('userId');
-    if (!user.id) {
+    if (!user?.id) {
       toast.error('User not logged in. Please log in to create a post.');
-      setTimeout(() => navigate('/login'), 2000); // Redirect to login if no userId
+      setTimeout(() => navigate('/login'), 2000); // Redirect to login if no user.id
       return;
     }
     const timestamp = new Date().toISOString();
-    setPost((prev) => ({ ...prev, userId, timestamp }));
+    setPost((prev) => ({ ...prev, userId: user.id, timestamp }));
     detectLocation();
-  }, [navigate]);
+  }, [navigate, user]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    if (name === 'topic' && value.trim().split(/\s+/).length > 20) return;
-    if (name === 'description' && value.trim().split(/\s+/).length > 50) return;
     setPost({ ...post, [name]: type === 'checkbox' ? checked : value });
   };
 
@@ -77,12 +62,6 @@ const CreatePost = () => {
       const transcript = Array.from(event.results)
         .map((r) => r[0].transcript)
         .join('');
-      const words = transcript.trim().split(/\s+/);
-      if (words.length > 50) {
-        recognition.stop();
-        setIsListening(false);
-        return toast.error('Speech input exceeds 50 words.');
-      }
       setPost((prev) => ({ ...prev, description: transcript }));
     };
     recognition.onerror = (event) => {
@@ -128,20 +107,10 @@ const CreatePost = () => {
   const handleDragOver = (e) => e.preventDefault();
 
   const handleFileValidation = (files) => {
-    if (mediaFiles.length + files.length > MAX_FILES)
-      return toast.error(`Maximum ${MAX_FILES} files allowed.`);
-    files.forEach((file) => {
-      if (mediaFiles.length >= MAX_FILES) return;
-      if (!ALLOWED_TYPES.includes(file.type))
-        return toast.error(`File type not allowed: ${file.name}`);
-      if (
-        (file.type.startsWith('video') && file.size > MAX_VIDEO_SIZE) ||
-        (!file.type.startsWith('video') && file.size > MAX_IMAGE_SIZE)
-      ) {
-        return toast.error(`File too large: ${file.name}`);
-      }
-      setMediaFiles((prev) => [...prev, { file, url: URL.createObjectURL(file) }]);
-    });
+    setMediaFiles((prev) => [
+      ...prev,
+      ...files.map((file) => ({ file, url: URL.createObjectURL(file) })),
+    ]);
   };
 
   const handleRemoveFile = (index) =>
@@ -157,10 +126,7 @@ const CreatePost = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!user.id) {
-      toast.error('User ID is missing. Please log in.');
-      return;
-    }
+    console.log('Creating post with userId:', post.userId);
     try {
       const mediaUrls = [];
       const mediaTypes = [];
@@ -184,7 +150,6 @@ const CreatePost = () => {
     } catch (err) {
       console.error('❌ Error submitting post:', err);
       toast.error(`Failed to create post: ${err.response?.data || err.message}`);
-
     }
   };
 
@@ -198,10 +163,9 @@ const CreatePost = () => {
             name="topic"
             value={post.topic}
             onChange={handleInputChange}
-            placeholder="Post topic (max 20 words)"
+            placeholder="Post topic"
             className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <p className="text-sm text-gray-500 text-right">{topicWordCount}/20 words</p>
         </div>
 
         <div className="relative">
@@ -210,10 +174,9 @@ const CreatePost = () => {
             name="description"
             value={post.description}
             onChange={handleInputChange}
-            placeholder="Description (max 50 words)"
+            placeholder="Description"
             className="w-full p-3 border rounded-lg pr-28 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <p className="text-sm text-gray-500 text-right">{descriptionWordCount}/50 words</p>
           <div className="absolute right-3 top-12 flex items-center space-x-2">
             <button
               type="button"
@@ -278,7 +241,6 @@ const CreatePost = () => {
           <input
             type="file"
             multiple
-            accept=".jpg,.jpeg,.png,.mp4"
             onChange={handleFileSelect}
             className="w-full mt-3"
           />
@@ -363,12 +325,7 @@ const CreatePost = () => {
 
         <button
           type="submit"
-          disabled={!isFormValid}
-          className={`w-full py-3 rounded-lg text-white font-semibold ${
-            isFormValid
-              ? 'bg-blue-500 hover:bg-blue-600'
-              : 'bg-gray-400 cursor-not-allowed'
-          } transition`}
+          className="w-full py-3 rounded-lg text-white font-semibold bg-blue-500 hover:bg-blue-600 transition"
         >
           Create Post
         </button>

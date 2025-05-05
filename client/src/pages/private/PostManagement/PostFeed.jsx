@@ -3,15 +3,16 @@ import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Link } from 'react-router-dom';
+import { useAuth } from "../../../context/AuthContext";
 
 const PostFeed = () => {
+  const { user } = useAuth();
   const [posts, setPosts] = useState([]);
   const [editingPostId, setEditingPostId] = useState(null);
   const [editValues, setEditValues] = useState({});
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const userId = localStorage.getItem('userId') || 'user123';
 
   const fetchPosts = async () => {
     setLoading(true);
@@ -20,7 +21,9 @@ const PostFeed = () => {
         withCredentials: true,
         params: { filter, search: searchTerm }
       });
-      setPosts(res.data);
+      // Sort posts by timestamp in descending order (newest first)
+      const sortedPosts = res.data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      setPosts(sortedPosts);
       setLoading(false);
     } catch (err) {
       toast.error('Failed to fetch posts');
@@ -43,13 +46,13 @@ const PostFeed = () => {
   const startEdit = (post) => {
     setEditingPostId(post.id);
     setEditValues({
-      topic: post.topic,
-      description: post.description,
-      mediaUrls: post.mediaUrls,
-      mediaTypes: post.mediaTypes,
-      isPrivate: post.isPrivate,
+      topic: post.topic || '',
+      description: post.description || '',
+      mediaUrls: post.mediaUrls || [],
+      mediaTypes: post.mediaTypes || [],
+      isPrivate: post.isPrivate || false,
       taggedFriends: post.taggedFriends?.join(', ') || '',
-      location: post.location
+      location: post.location || ''
     });
   };
 
@@ -89,7 +92,7 @@ const PostFeed = () => {
 
   useEffect(() => {
     fetchPosts();
-  }, [filter]); // Refetch when filter changes
+  }, [filter]);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -126,7 +129,7 @@ const PostFeed = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search posts..."
-              className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="-Mo flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
             />
             <button 
               type="submit" 
@@ -174,7 +177,7 @@ const PostFeed = () => {
 
         {/* Posts List */}
         {loading ? (
-          <div className="flex justify-center my-12">
+          <div class Snowflake="flex justify-center my-12">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
           </div>
         ) : posts.length === 0 ? (
@@ -316,48 +319,50 @@ const PostFeed = () => {
                       </div>
                       
                       {/* Post Actions Dropdown */}
-                      <div className="relative group">
-                        <button className="p-2 rounded-full hover:bg-gray-100 focus:outline-none">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                          </svg>
-                        </button>
-                        <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg overflow-hidden z-10 hidden group-hover:block">
-                          <div className="py-1">
-                            <button 
-                              onClick={() => startEdit(post)} 
-                              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                              </svg>
-                              Edit
-                            </button>
-                            <button 
-                              onClick={() => handleDelete(post.id)} 
-                              className="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100 w-full text-left"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                              Delete
-                            </button>
+                      {user?.id === post.userId && (
+                        <div className="relative group">
+                          <button className="p-2 rounded-full hover:bg-gray-100 focus:outline-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                            </svg>
+                          </button>
+                          <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg overflow-hidden z-10 hidden group-hover:block">
+                            <div className="py-1">
+                              <button 
+                                onClick={() => startEdit(post)} 
+                                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                Edit
+                              </button>
+                              <button 
+                                onClick={() => handleDelete(post.id)} 
+                                className="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100 w-full text-left"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Delete
+                              </button>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                     
                     {/* Post Content */}
                     <div className="p-4 sm:p-6">
                       {/* Topic */}
-                      <h2 className="text-xl font-bold text-gray-900 mb-2">{post.topic}</h2>
+                      <h2 className="text-xl font-bold text-gray-900 mb-2">{post.topic || 'Untitled'}</h2>
                       
                       {/* Description */}
-                      <p className="text-gray-700 whitespace-pre-line mb-4">{post.description}</p>
+                      <p className="text-gray-700 whitespace-pre-line mb-4">{post.description || ''}</p>
                       
                       {/* Private badge */}
                       {post.isPrivate && (
-                        <div className="inline-flex items-center rounded-full px-2.5 py-0.5 bg-gray-100 text-gray-800 text-xs font-medium mb-4">
+                        <div className="inline-flex items-center rounded-full px-2.5 py-3 bg-gray-100 text-gray-800 text-xs font-medium mb-4">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                           </svg>
@@ -366,10 +371,10 @@ const PostFeed = () => {
                       )}
                       
                       {/* Media Grid */}
-                      {post.mediaUrls && post.mediaUrls.length > 0 && (
+                      {Array.isArray(post.mediaUrls) && post.mediaUrls.length > 0 && (
                         <div className={`grid ${post.mediaUrls.length > 1 ? 'grid-cols-2 gap-2' : 'grid-cols-1'} mt-4`}>
                           {post.mediaUrls.map((url, idx) => (
-                            post.mediaTypes[idx] === 'video' ? (
+                            post.mediaTypes?.[idx] === 'video' ? (
                               <div key={idx} className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden shadow-sm">
                                 <video 
                                   controls 
@@ -391,7 +396,7 @@ const PostFeed = () => {
                       )}
                       
                       {/* Tagged Friends */}
-                      {post.taggedFriends && post.taggedFriends.length > 0 && (
+                      {Array.isArray(post.taggedFriends) && post.taggedFriends.length > 0 && (
                         <div className="mt-4">
                           <p className="text-sm text-gray-500 mb-1">Tagged:</p>
                           <div className="flex flex-wrap gap-1">
@@ -430,20 +435,22 @@ const PostFeed = () => {
                           <span>Share</span>
                         </button>
                       </div>
-                      <div className="flex">
-                        <button 
-                          onClick={() => startEdit(post)} 
-                          className="mr-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded transition"
-                        >
-                          Edit
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(post.id)} 
-                          className="text-sm bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded transition"
-                        >
-                          Delete
-                        </button>
-                      </div>
+                      {user?.id === post.userId && (
+                        <div className="flex">
+                          <button 
+                            onClick={() => startEdit(post)} 
+                            className="mr-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded transition"
+                          >
+                            Edit
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(post.id)} 
+                            className="text-sm bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded transition"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </>
                 )}
