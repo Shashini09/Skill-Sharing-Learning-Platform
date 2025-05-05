@@ -90,20 +90,41 @@ const [userLikes, setUserLikes] = useState({});
 
   const handleCommentSubmit = async (e, postId) => {
     e.preventDefault();
+  
+    const trimmedComment = commentText.trim();
+  
+    if (!trimmedComment) {
+      toast.error('Comment cannot be empty');
+      return;
+    }
+  
+    if (trimmedComment.length < 5) {
+      toast.error('Comment must be at least 5 characters');
+      return;
+    }
+  
+    if (trimmedComment.length > 300) {
+      toast.error('Comment cannot exceed 300 characters');
+      return;
+    }
+  
     try {
-      await axios.post(`http://localhost:8080/api/comments`, {
+      await axios.post('http://localhost:8080/api/comments', {
         postId,
         user: userName,
-        text: commentText,
+        text: trimmedComment,
       }, {
         withCredentials: true,
       });
+  
       setCommentText('');
       fetchComments(postId);
+      toast.success('Comment posted!');
     } catch (err) {
       toast.error('Failed to post comment');
     }
   };
+  
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this post?')) {
