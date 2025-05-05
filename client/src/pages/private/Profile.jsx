@@ -285,39 +285,36 @@ const Profile = () => {
     <div className="min-h-screen bg-gray-50 py-6 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="flex flex-col md:flex-row items-center">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
             {/* Profile picture section */}
-            <div className="mb-4 md:mb-0 md:mr-6">
+            <div className="flex justify-center md:justify-start">
               {dbUser.picture ? (
                 <img
                   src={dbUser.picture}
                   alt="Profile"
-                  className="h-20 w-20 rounded-full object-cover border-4 border-blue-100"
+                  className="h-40 w-40 rounded-full object-cover border-4 border-blue-100 shadow-sm"
                   onError={(e) => (e.target.src = '/placeholder-image.jpg')}
                 />
               ) : (
-                <div className="h-20 w-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-bold">
+                <div className="h-40 w-40 rounded-full bg-blue-600 flex items-center justify-center text-white text-5xl font-bold shadow-sm">
                   {dbUser.name.charAt(0).toUpperCase()}
                 </div>
               )}
             </div>
-            {/* Profile details section with followers and following counts */}
-            <div className="text-center md:text-left flex-1">
-              {/* Display user's name */}
-              <h1 className="text-2xl font-bold text-gray-800">{dbUser.name}</h1>
-              {/* Display user's email */}
-              <p className="text-gray-600">{dbUser.email}</p>
-              {/* Display user's birthday */}
-              <p className="text-gray-600 text-sm">
+            {/* Profile details section */}
+            <div className="col-span-2">
+              <h1 className="text-2xl font-bold text-gray-900">{dbUser.name}</h1>
+              <p className="text-gray-600 text-sm mt-1">{dbUser.email}</p>
+              <p className="text-gray-600 text-sm mt-1">
                 Birthday: {dbUser.birthday
                   ? new Date(dbUser.birthday).toLocaleDateString()
                   : "Not provided"}
               </p>
-              {/* Display user's about section if available */}
-              {dbUser.about && <p className="mt-2 text-sm text-gray-700">{dbUser.about}</p>}
-              {/* Display authentication provider */}
-              <div className="mt-2">
-                <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+              {dbUser.about && (
+                <p className="text-gray-700 text-sm mt-2 leading-relaxed">{dbUser.about}</p>
+              )}
+              <div className="mt-3">
+                <span className="inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-1 rounded-full">
                   {dbUser.provider
                     ? dbUser.provider.charAt(0).toUpperCase() + dbUser.provider.slice(1)
                     : "Cook App"}
@@ -325,7 +322,7 @@ const Profile = () => {
               </div>
             </div>
           </div>
-          <div className="mt-5 pt-5 border-t border-gray-200">
+          <div className="mt-6 pt-6 border-t border-gray-200">
             <h2 className="text-base font-medium text-gray-800 mb-3">Activity Snapshot</h2>
             <div className="grid grid-cols-3 gap-3">
               <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-3 transition-all hover:shadow hover:border-blue-200">
@@ -348,7 +345,8 @@ const Profile = () => {
                 <div className="flex items-center">
                   <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 mr-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                      <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path d="M12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                     </svg>
                   </div>
                   <div>
