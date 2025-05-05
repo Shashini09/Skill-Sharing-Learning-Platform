@@ -66,12 +66,14 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-1">
             {user && (
               <>
-                <NavLink to="/allusers" isActive={isActive("/allusers")}>
-                  Friends
-                </NavLink>
+
                 <NavLink to="/profile" isActive={isActive("/profile")}>
                   Profile
                 </NavLink>
+                <NavLink to="/allusers" isActive={isActive("/allusers")}>
+                  Friends
+                </NavLink>
+                
                 <NavLink to="/postfeed" isActive={isActive("/postfeed")}>
                   Feed
                 </NavLink>
@@ -229,12 +231,14 @@ const Navbar = () => {
                   <span className="ml-2 text-sm font-medium text-indigo-100">{user.name}</span>
                 </div>
                 <div className="flex flex-col space-y-2">
+
+                <MobileNavLink to="/profile" isActive={isActive("/profile")} onClick={toggleMobileMenu}>
+                    Profile
+                  </MobileNavLink>
                   <MobileNavLink to="/allusers" isActive={isActive("/allusers")} onClick={toggleMobileMenu}>
                     Friends
                   </MobileNavLink>
-                  <MobileNavLink to="/profile" isActive={isActive("/profile")} onClick={toggleMobileMenu}>
-                    Profile
-                  </MobileNavLink>
+                  
                   <MobileNavLink to="/postfeed" isActive={isActive("/postfeed")} onClick={toggleMobileMenu}>
                     Feed
                   </MobileNavLink>
