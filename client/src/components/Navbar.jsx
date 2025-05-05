@@ -78,6 +78,23 @@ const Navbar = () => {
                 <NavLink to="/createpost" isActive={isActive("/createpost")}>
                   Create
                 </NavLink>
+                <NavLink to="/chat" isActive={isActive("/chat")}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 inline-block mr-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                    />
+                  </svg>
+                  Chat
+                </NavLink>
               </>
             )}
 
@@ -224,6 +241,23 @@ const Navbar = () => {
                   <MobileNavLink to="/createpost" isActive={isActive("/createpost")} onClick={toggleMobileMenu}>
                     Create Post
                   </MobileNavLink>
+                  <MobileNavLink to="/chat" isActive={isActive("/chat")} onClick={toggleMobileMenu}>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 inline-block mr-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                      />
+                    </svg>
+                    Chat
+                  </MobileNavLink>
                   <button
                     onClick={handleLogout}
                     disabled={isLoggingOut}
@@ -274,7 +308,7 @@ const NavLink = ({ to, isActive, children }) => {
   return (
     <Link
       to={to}
-      className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+      className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center ${
         isActive
           ? "bg-indigo-800 text-white"
           : "text-indigo-100 hover:bg-indigo-800 hover:text-white"
@@ -290,7 +324,7 @@ const MobileNavLink = ({ to, isActive, onClick, children }) => {
   return (
     <Link
       to={to}
-      className={`block py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+      className={`block py-2 px-4 rounded-md text-sm font-medium transition-colors flex items-center ${
         isActive
           ? "bg-indigo-800 text-white"
           : "text-indigo-100 hover:bg-indigo-800 hover:text-white"
