@@ -88,6 +88,11 @@ const Profile = () => {
     }
   };
 
+  const handleMessage = (userId, userName) => {
+    console.log(`Message button clicked for user ID: ${userId}`);
+    navigate(`/chat/${userId}`, { state: { name: userName } });
+  };
+
   const renderActivityContent = () => {
     switch(activeTab) {
       case 'posts':
@@ -150,45 +155,49 @@ const Profile = () => {
         return (
           <div className="py-2">
             {followers.length === 0 ? (
-              <div className="text-center py-6">
-                <div className="mx-auto h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                  </svg>
-                </div>
-                <p className="text-gray-600 text-sm">You don't have any followers yet.</p>
+              <div className="flex flex-col items-center justify-center py-16 px-4">
+                <p className="text-gray-500 text-center font-medium mb-2">No followers yet</p>
+                <p className="text-gray-400 text-center text-sm max-w-xs">
+                  Your followers will appear here once people start following your profile.
+                </p>
               </div>
             ) : (
-              <div className="space-y-2">
+              <ul className="divide-y divide-gray-100">
                 {followers.map(follower => (
-                  <div key={follower.id} className="flex items-center p-2 hover:bg-gray-50 rounded-lg">
-                    <div className="flex-shrink-0 mr-3">
-                      {follower.picture ? (
-                        <img 
-                          src={follower.picture} 
-                          alt={follower.name} 
-                          className="h-10 w-10 rounded-full object-cover"
-                          onError={(e) => (e.target.src = '/placeholder-image.jpg')}
-                        />
-                      ) : (
-                        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                          {follower.name.charAt(0).toUpperCase()}
+                  <li key={follower.id} className="hover:bg-gray-50 transition duration-150 ease-in-out">
+                    <div className="flex items-center justify-between p-4">
+                      <div className="flex items-center space-x-4">
+                        <div className="h-12 w-12 rounded-full overflow-hidden bg-gray-100 border border-gray-200">
+                          <img
+                            src={follower.picture || 'https://via.placeholder.com/40'}
+                            alt={`${follower.name}'s avatar`}
+                            className="h-full w-full object-cover"
+                            onError={(e) => (e.target.src = '/placeholder-image.jpg')}
+                          />
                         </div>
-                      )}
+                        <div>
+                          <h3 className="text-gray-800 font-medium">{follower.name}</h3>
+                          <p className="text-gray-500 text-sm">Follower</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleMessage(follower.id, follower.name)}
+                          className="text-indigo-600 hover:text-indigo-700 px-3 py-1 rounded-md border border-indigo-200 hover:border-indigo-300 bg-white hover:bg-indigo-50 transition duration-150 text-sm"
+                        >
+                          Message
+                        </button>
+                        <Link
+                          to={`/frendsprofile/${follower.id}`}
+                          className="text-gray-700 hover:text-gray-900 px-3 py-1 rounded-md border border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 transition duration-150 text-sm"
+                        >
+                          Profile
+                        </Link>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{follower.name}</p>
-                      <p className="text-xs text-gray-500 truncate">{follower.email}</p>
-                    </div>
-                    <Link
-                      to={`/frendsprofile/${follower.id}`}
-                      className="ml-2 flex-shrink-0 bg-gray-100 text-gray-800 text-xs font-medium py-1 px-2 rounded hover:bg-gray-200 transition-colors"
-                    >
-                      View Profile
-                    </Link>
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
           </div>
         );
@@ -196,45 +205,49 @@ const Profile = () => {
         return (
           <div className="py-2">
             {following.length === 0 ? (
-              <div className="text-center py-6">
-                <div className="mx-auto h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                  </svg>
-                </div>
-                <p className="text-gray-600 text-sm">You're not following anyone yet.</p>
+              <div className="flex flex-col items-center justify-center py-16 px-4">
+                <p className="text-gray-500 text-center font-medium mb-2">You're not following anyone yet</p>
+                <p className="text-gray-400 text-center text-sm max-w-xs">
+                  When you follow someone, they'll appear here.
+                </p>
               </div>
             ) : (
-              <div className="space-y-2">
+              <ul className="divide-y divide-gray-100">
                 {following.map(person => (
-                  <div key={person.id} className="flex items-center p-2 hover:bg-gray-50 rounded-lg">
-                    <div className="flex-shrink-0 mr-3">
-                      {person.picture ? (
-                        <img 
-                          src={person.picture} 
-                          alt={person.name} 
-                          className="h-10 w-10 rounded-full object-cover"
-                          onError={(e) => (e.target.src = '/placeholder-image.jpg')}
-                        />
-                      ) : (
-                        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                          {person.name.charAt(0).toUpperCase()}
+                  <li key={person.id} className="hover:bg-gray-50 transition duration-150 ease-in-out">
+                    <div className="flex items-center justify-between p-4">
+                      <div className="flex items-center space-x-4">
+                        <div className="h-12 w-12 rounded-full overflow-hidden bg-gray-100 border border-gray-200">
+                          <img
+                            src={person.picture || 'https://via.placeholder.com/40'}
+                            alt={`${person.name}'s profile`}
+                            className="h-full w-full object-cover"
+                            onError={(e) => (e.target.src = '/placeholder-image.jpg')}
+                          />
                         </div>
-                      )}
+                        <div>
+                          <h3 className="text-gray-800 font-medium">{person.name}</h3>
+                          <p className="text-gray-500 text-sm">Following</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleMessage(person.id, person.name)}
+                          className="text-indigo-600 hover:text-indigo-700 px-3 py-1 rounded-md border border-indigo-200 hover:border-indigo-300 bg-white hover:bg-indigo-50 transition duration-150 text-sm"
+                        >
+                          Message
+                        </button>
+                        <Link
+                          to={`/frendsprofile/${person.id}`}
+                          className="text-gray-700 hover:text-gray-900 px-3 py-1 rounded-md border border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 transition duration-150 text-sm"
+                        >
+                          Profile
+                        </Link>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{person.name}</p>
-                      <p className="text-xs text-gray-500 truncate">{person.email}</p>
-                    </div>
-                    <Link
-                      to={`/frendsprofile/${person.id}`}
-                      className="ml-2 flex-shrink-0 bg-gray-100 text-gray-800 text-xs font-medium py-1 px-2 rounded hover:bg-gray-200 transition-colors"
-                    >
-                      View Profile
-                    </Link>
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
           </div>
         );
@@ -258,7 +271,7 @@ const Profile = () => {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center p-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-blue-500 mx-auto"></div>
           <p className="mt-4 text-gray-600 font-medium">Loading profile...</p>
         </div>
       </div>
@@ -418,8 +431,7 @@ const Profile = () => {
         </div>
         <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
           <div className="flex border-b border-gray-200">
-            <Link
-              to="/profile"
+            <button
               className={`flex-1 py-3 text-sm font-medium text-center ${
                 activeTab === 'posts'
                   ? 'text-blue-600 border-b-2 border-blue-600'
@@ -428,9 +440,8 @@ const Profile = () => {
               onClick={() => setActiveTab('posts')}
             >
               Posts ({posts.length})
-            </Link>
-            <Link
-              to="/followers"
+            </button>
+            <button
               className={`flex-1 py-3 text-sm font-medium text-center ${
                 activeTab === 'followers'
                   ? 'text-blue-600 border-b-2 border-blue-600'
@@ -439,9 +450,8 @@ const Profile = () => {
               onClick={() => setActiveTab('followers')}
             >
               Followers ({followers.length})
-            </Link>
-            <Link
-              to="/following"
+            </button>
+            <button
               className={`flex-1 py-3 text-sm font-medium text-center ${
                 activeTab === 'following'
                   ? 'text-blue-600 border-b-2 border-blue-600'
@@ -450,7 +460,7 @@ const Profile = () => {
               onClick={() => setActiveTab('following')}
             >
               Following ({following.length})
-            </Link>
+            </button>
           </div>
           <div className="p-4">
             {renderActivityContent()}
