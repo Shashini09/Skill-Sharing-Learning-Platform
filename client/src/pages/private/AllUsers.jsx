@@ -261,7 +261,7 @@ export default function AllUsers({ currentUser }) {
                   
                   <div className="mt-6 flex items-center justify-between">
                     <Link
-                      to={`/profile/${dbUser.id}`}
+                      to={`/frendsprofile/${dbUser.id}`}
                       className="text-base font-medium text-indigo-600 hover:text-indigo-700 transition-colors duration-200"
                     >
                       View Profile

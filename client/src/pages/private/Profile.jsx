@@ -181,12 +181,13 @@ const Profile = () => {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <button
-                          onClick={() => handleMessage(follower.id, follower.name)}
-                          className="text-indigo-600 hover:text-indigo-700 px-3 py-1 rounded-md border border-indigo-200 hover:border-indigo-300 bg-white hover:bg-indigo-50 transition duration-150 text-sm"
+                        
+                        <Link
+                          to={`/chat`}
+                          className="text-gray-700 hover:text-gray-900 px-3 py-1 rounded-md border border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 transition duration-150 text-sm"
                         >
-                          Message
-                        </button>
+                          message
+                        </Link>
                         <Link
                           to={`/frendsprofile/${follower.id}`}
                           className="text-gray-700 hover:text-gray-900 px-3 py-1 rounded-md border border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 transition duration-150 text-sm"
@@ -231,12 +232,12 @@ const Profile = () => {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <button
-                          onClick={() => handleMessage(person.id, person.name)}
-                          className="text-indigo-600 hover:text-indigo-700 px-3 py-1 rounded-md border border-indigo-200 hover:border-indigo-300 bg-white hover:bg-indigo-50 transition duration-150 text-sm"
+                      <Link
+                          to={`/chat`}
+                          className="text-gray-700 hover:text-gray-900 px-3 py-1 rounded-md border border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 transition duration-150 text-sm"
                         >
-                          Message
-                        </button>
+                          message
+                        </Link>
                         <Link
                           to={`/frendsprofile/${person.id}`}
                           className="text-gray-700 hover:text-gray-900 px-3 py-1 rounded-md border border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 transition duration-150 text-sm"
