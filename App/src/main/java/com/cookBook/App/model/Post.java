@@ -20,6 +20,7 @@ public class Post {
     private List<String> taggedFriends;
     private String location;
     private LocalDateTime timestamp;
+    private String userName; // New field for username
 
     // Getters and Setters
     public String getId() { return id; }
@@ -51,4 +52,7 @@ public class Post {
 
     public LocalDateTime getTimestamp() { return timestamp; }
     public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+
+    public String getUserName() { return userName; }
+    public void setUserName(String userName) { this.userName = userName; }
 }

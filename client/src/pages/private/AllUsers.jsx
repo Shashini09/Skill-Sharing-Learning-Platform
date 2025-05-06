@@ -17,7 +17,23 @@ export default function AllUsers({ currentUser }) {
         const response = await axios.get('http://localhost:8080/users', {
           withCredentials: true,
         });
-        const updatedUsers = response.data.map(user => ({
+        // Log the API response for debugging
+        console.log('Fetched users:', response.data);
+        console.log('Current user:', currentUser);
+
+        // Ensure response.data is an array
+        const fetchedUsers = Array.isArray(response.data) ? response.data : [];
+        if (fetchedUsers.length === 0) {
+          setError('No users found in the system.');
+        }
+
+        // Validate that each user has an id
+        const validUsers = fetchedUsers.filter(user => user.id !== undefined && user.id !== null);
+        if (validUsers.length < fetchedUsers.length) {
+          console.warn('Some users were excluded due to missing or invalid IDs:', fetchedUsers);
+        }
+
+        const updatedUsers = validUsers.map(user => ({
           ...user,
           isFollowed: currentUser?.following?.includes(user.id) || false,
         }));
@@ -25,7 +41,7 @@ export default function AllUsers({ currentUser }) {
         setLoading(false);
       } catch (err) {
         console.error('Fetch users error:', err);
-        setError('Failed to fetch users. Please try again later.');
+        setError('Failed to fetch users. Please check the server or try again later.');
         setLoading(false);
       }
     };
@@ -65,7 +81,17 @@ export default function AllUsers({ currentUser }) {
   };
 
   const filteredUsers = users
-    .filter((dbUser) => dbUser.id !== currentUser?.id)
+    .filter((dbUser) => {
+      // Exclude current user if currentUser and currentUser.id are valid
+      if (currentUser && currentUser.id !== undefined && currentUser.id !== null) {
+        const isNotCurrentUser = String(dbUser.id) !== String(currentUser.id);
+        console.log(`Comparing dbUser.id=${dbUser.id} (${typeof dbUser.id}) with currentUser.id=${currentUser.id} (${typeof currentUser.id}): ${isNotCurrentUser ? 'Excluding' : 'Including'}`);
+        return isNotCurrentUser;
+      }
+      // Log warning if currentUser is invalid
+      console.warn('No valid currentUser, including all users. Check currentUser prop:', currentUser);
+      return true;
+    })
     .filter((dbUser) => 
       dbUser.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (dbUser.email && dbUser.email.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -76,6 +102,9 @@ export default function AllUsers({ currentUser }) {
       if (selectedFilter === 'not-following') return !dbUser.isFollowed;
       return true;
     });
+
+  // Log filtered users for debugging
+  console.log('Filtered users:', filteredUsers);
 
   if (loading) {
     return (

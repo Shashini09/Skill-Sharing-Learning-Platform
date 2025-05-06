@@ -111,7 +111,7 @@ const PostFeed = () => {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Post Feed</h1>
           <Link 
-            to="/create-post" 
+            to="/createpost" 
             className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition shadow-sm flex items-center"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
@@ -129,7 +129,7 @@ const PostFeed = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search posts..."
-              className="-Mo flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
             />
             <button 
               type="submit" 
@@ -177,7 +177,7 @@ const PostFeed = () => {
 
         {/* Posts List */}
         {loading ? (
-          <div class Snowflake="flex justify-center my-12">
+          <div className="flex justify-center my-12">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
           </div>
         ) : posts.length === 0 ? (
@@ -362,7 +362,7 @@ const PostFeed = () => {
                       
                       {/* Private badge */}
                       {post.isPrivate && (
-                        <div className="inline-flex items-center rounded-full px-2.5 py-3 bg-gray-100 text-gray-800 text-xs font-medium mb-4">
+                        <div className="inline-flex items-center rounded-full px-2.5 py-0.5 bg-gray-100 text-gray-800 text-xs font-medium mb-4">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                           </svg>

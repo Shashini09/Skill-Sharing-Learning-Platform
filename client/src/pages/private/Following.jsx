@@ -44,19 +44,23 @@ const Profile = () => {
               withCredentials: true,
             });
             console.log('Followers fetched:', followersResponse.data);
-            setFollowers(followersResponse.data || []);
+            // Filter out the logged-in user
+            const filteredFollowers = (followersResponse.data || []).filter(follower => follower.id !== user.id);
+            setFollowers(filteredFollowers);
           } catch (followersErr) {
             console.error('Error fetching followers:', followersErr);
             setFollowers([]);
           }
 
-          // Fetch following using the correct endpoint for the current user
+          // Fetch following
           try {
             const followingResponse = await axios.get(`http://localhost:8080/users/me/following`, {
               withCredentials: true,
             });
             console.log('Following fetched:', followingResponse.data);
-            setFollowing(followingResponse.data || []);
+            // Filter out the logged-in user
+            const filteredFollowing = (followingResponse.data || []).filter(person => person.id !== user.id);
+            setFollowing(filteredFollowing);
           } catch (followingErr) {
             console.error('Error fetching following:', followingErr);
             setFollowing([]);
@@ -94,11 +98,14 @@ const Profile = () => {
         withCredentials: true,
         headers: { 'Content-Type': 'application/json' },
       });
-      // Update following list
+      // Fetch updated following list
       const followingResponse = await axios.get(`http://localhost:8080/users/me/following`, {
         withCredentials: true,
       });
-      setFollowing(followingResponse.data || []);
+      // Filter out the logged-in user
+      const filteredFollowing = (followingResponse.data || []).filter(person => person.id !== user.id);
+      console.log('Updated following list:', filteredFollowing);
+      setFollowing(filteredFollowing);
     } catch (err) {
       console.error('Error following user:', err);
       setError('Failed to follow user. Please try again.');
@@ -111,11 +118,14 @@ const Profile = () => {
         withCredentials: true,
         headers: { 'Content-Type': 'application/json' },
       });
-      // Update following list
+      // Fetch updated following list
       const followingResponse = await axios.get(`http://localhost:8080/users/me/following`, {
         withCredentials: true,
       });
-      setFollowing(followingResponse.data || []);
+      // Filter out the logged-in user
+      const filteredFollowing = (followingResponse.data || []).filter(person => person.id !== user.id);
+      console.log('Updated following list after unfollow:', filteredFollowing);
+      setFollowing(filteredFollowing);
     } catch (err) {
       console.error('Error unfollowing user:', err);
       setError('Failed to unfollow user. Please try again.');
@@ -343,7 +353,6 @@ const Profile = () => {
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-            {/* Profile picture section */}
             <div className="flex justify-center md:justify-start">
               {dbUser.picture ? (
                 <img
@@ -358,7 +367,6 @@ const Profile = () => {
                 </div>
               )}
             </div>
-            {/* Profile details section */}
             <div className="col-span-2">
               <h1 className="text-2xl font-bold text-gray-900">{dbUser.name}</h1>
               <p className="text-gray-600 text-sm mt-1">{dbUser.email}</p>
