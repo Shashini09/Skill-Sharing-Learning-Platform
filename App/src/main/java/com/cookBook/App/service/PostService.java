@@ -1,21 +1,26 @@
 package com.cookBook.App.service;
 
 import com.cookBook.App.model.Post;
+
 import com.cookBook.App.model.User;
 import com.cookBook.App.repository.PostRepository;
 import com.cookBook.App.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+
 import java.util.stream.Collectors;
+
 
 @Service
 public class PostService {
+
 
     private static final Logger logger = LoggerFactory.getLogger(PostService.class);
 
@@ -25,12 +30,14 @@ public class PostService {
     @Autowired
     private UserRepository userRepository;
 
+
     public Post createPost(Post post) {
         post.setTimestamp(LocalDateTime.now());
         return postRepository.save(post);
     }
 
     public List<Post> getAllPosts() {
+
         List<Post> posts = postRepository.findAll();
         return posts.stream().map(post -> {
             try {
@@ -66,7 +73,6 @@ public class PostService {
             }
         });
         return post;
-    }
 
     public Post updatePost(String id, Post updatedPost) {
         return postRepository.findById(id).map(post -> {
@@ -83,5 +89,6 @@ public class PostService {
 
     public void deletePost(String id) {
         postRepository.deleteById(id);
-    }
+
 }
+

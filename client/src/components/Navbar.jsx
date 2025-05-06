@@ -49,6 +49,7 @@ const Navbar = () => {
   }
 
   return (
+
     <div className="bg-indigo-900 bg-gradient-to-r from-indigo-900 to-indigo-800 text-white py-3 px-6 shadow-md">
       <div className="container mx-auto">
         <div className="flex justify-between items-center">
@@ -61,6 +62,7 @@ const Navbar = () => {
               </span>
             </Link>
           </div>
+
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">

@@ -1,10 +1,13 @@
+
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
 import { useAuth } from "../../../context/AuthContext";
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
 const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
@@ -13,16 +16,24 @@ const MAX_FILES = 5;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'video/mp4'];
 
 >>>>>>> Stashed changes
+=======
+
+>>>>>>> 9acab0346d04cc0a15654fd5177b4b8dfc373a79
 const CreatePost = () => {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   const navigate = useNavigate();
+
   const { user } = useAuth();
 
 <<<<<<< Updated upstream
   console.log('User:', user);
   
+<<<<<<< HEAD
 =======
 >>>>>>> Stashed changes
+=======
+
+>>>>>>> 9acab0346d04cc0a15654fd5177b4b8dfc373a79
   const [post, setPost] = useState({
     userId: '',
     topic: '',
@@ -32,7 +43,10 @@ const CreatePost = () => {
     isPrivate: false,
     taggedFriends: [],
     location: '',
-    timestamp: '',
+
+    timestamp: ''
+   
+
   });
 
   const [mediaFiles, setMediaFiles] = useState([]);
@@ -55,6 +69,7 @@ const CreatePost = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
+
     setPost({ ...post, [name]: type === 'checkbox' ? checked : value });
   };
 =======
@@ -89,11 +104,13 @@ const CreatePost = () => {
     recognition.onstart = () => setIsListening(true);
 
     recognition.onresult = (event) => {
+
       const transcript = Array.from(event.results)
         .map(result => result[0].transcript)
         .join('');
 <<<<<<< Updated upstream
       setPost((prev) => ({ ...prev, description: transcript }));
+<<<<<<< HEAD
 =======
       const words = transcript.trim().split(/\s+/);
       if (words.length > 50) {
@@ -103,6 +120,9 @@ const CreatePost = () => {
         setPost(prev => ({ ...prev, description: transcript }));
       }
 >>>>>>> Stashed changes
+=======
+
+>>>>>>> 9acab0346d04cc0a15654fd5177b4b8dfc373a79
     };
 
     recognition.onerror = (event) => {
@@ -124,7 +144,12 @@ const CreatePost = () => {
   };
 
   const detectLocation = () => {
+<<<<<<< HEAD
     if (!navigator.geolocation) return toast.error("Geolocation not supported.");
+=======
+
+    if (!navigator.geolocation) return toast.error('Geolocation not supported.');
+>>>>>>> 9acab0346d04cc0a15654fd5177b4b8dfc373a79
     navigator.geolocation.getCurrentPosition(
       async ({ coords: { latitude, longitude } }) => {
         try {
@@ -138,7 +163,12 @@ const CreatePost = () => {
           toast.error("Could not fetch location.");
         }
       },
+<<<<<<< HEAD
       () => toast.error("Location access denied.")
+=======
+      () => toast.error('Location access denied.')
+
+>>>>>>> 9acab0346d04cc0a15654fd5177b4b8dfc373a79
     );
   };
 
@@ -162,7 +192,11 @@ const CreatePost = () => {
   const handleDragOver = (e) => e.preventDefault();
 
   const handleFileValidation = (files) => {
+<<<<<<< HEAD
 <<<<<<< Updated upstream
+=======
+
+>>>>>>> 9acab0346d04cc0a15654fd5177b4b8dfc373a79
     setMediaFiles((prev) => [
       ...prev,
       ...files.map((file) => ({ file, url: URL.createObjectURL(file) })),
@@ -194,16 +228,27 @@ const CreatePost = () => {
 
   const moveFile = (index, direction) => {
     const newIndex = index + direction;
+<<<<<<< HEAD
     if (newIndex >= 0 && newIndex < mediaFiles.length) {
       const updated = [...mediaFiles];
       [updated[index], updated[newIndex]] = [updated[newIndex], updated[index]];
       setMediaFiles(updated);
+=======
+    if (newIndex >= 0 && newIndex < files.length) {
+      [files[index], files[newIndex]] = [files[newIndex], files[index]];
+
+      setMediaFiles(files);
+>>>>>>> 9acab0346d04cc0a15654fd5177b4b8dfc373a79
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+<<<<<<< HEAD
 <<<<<<< Updated upstream
+=======
+
+>>>>>>> 9acab0346d04cc0a15654fd5177b4b8dfc373a79
     console.log('Creating post with userId:', post.userId);
 =======
 >>>>>>> Stashed changes
@@ -239,13 +284,18 @@ const CreatePost = () => {
 <<<<<<< Updated upstream
       console.error('❌ Error submitting post:', err);
       toast.error(`Failed to create post: ${err.response?.data || err.message}`);
+<<<<<<< HEAD
 =======
       toast.error(`Failed to create post: ${err.message}`);
 >>>>>>> Stashed changes
+=======
+
+>>>>>>> 9acab0346d04cc0a15654fd5177b4b8dfc373a79
     }
   };
 
   return (
+
     <div className="p-6 max-w-2xl mx-auto bg-white rounded-lg shadow-md">
       <h2 className="text-3xl font-bold mb-6 text-gray-800">Create New Post</h2>
 
@@ -296,8 +346,17 @@ const CreatePost = () => {
               className={`text-sm px-3 py-1 rounded-lg ${!isListening ? 'bg-gray-300 text-gray-600' : 'bg-red-100 hover:bg-red-200 text-red-700'}`}>
               🛑 Stop
             </button>
+<<<<<<< HEAD
             <select value={language} onChange={(e) => setLanguage(e.target.value)}
               className="text-sm border rounded px-2 py-1">
+=======
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              className="text-sm bg-white border rounded-lg px-2 py-1 focus:outline-none"
+            >
+
+>>>>>>> 9acab0346d04cc0a15654fd5177b4b8dfc373a79
               <option value="en-US">English</option>
               <option value="si-LK">Sinhala</option>
               <option value="ta-IN">Tamil</option>
@@ -340,7 +399,16 @@ const CreatePost = () => {
                 {p.file.type.startsWith('video') ? (
                   <video src={p.url} controls className="w-full max-h-40 object-cover rounded" />
                 ) : (
+<<<<<<< HEAD
                   <img src={p.url} alt="Preview" className="w-full max-h-40 object-cover rounded" />
+=======
+                  <img
+                    src={p.url}
+                    alt="Preview"
+                    className="w-full max-h-40 object-cover rounded"
+                  />
+
+>>>>>>> 9acab0346d04cc0a15654fd5177b4b8dfc373a79
                 )}
               </div>
             ))}
@@ -349,13 +417,34 @@ const CreatePost = () => {
 
         {uploadProgress > 0 && uploadProgress < 100 && (
           <div className="w-full bg-gray-200 h-2 rounded">
+<<<<<<< HEAD
             <div className="bg-blue-500 h-2 rounded" style={{ width: `${uploadProgress}%` }}></div>
+=======
+
+            <div
+              className="bg-blue-500 h-2 rounded"
+              style={{ width: `${uploadProgress}%` }}
+            ></div>
+
+>>>>>>> 9acab0346d04cc0a15654fd5177b4b8dfc373a79
           </div>
         )}
 
         <label className="flex items-center space-x-2">
+<<<<<<< HEAD
           <input type="checkbox" name="isPrivate" checked={post.isPrivate} onChange={handleInputChange} />
           <span>Private</span>
+=======
+
+          <input
+            type="checkbox"
+            name="isPrivate"
+            checked={post.isPrivate}
+            onChange={handleInputChange}
+            className="h-4 w-4 text-blue-500"
+          />
+          <span className="text-gray-700">Private</span>
+>>>>>>> 9acab0346d04cc0a15654fd5177b4b8dfc373a79
         </label>
 
         <input type="text" name="taggedFriends" placeholder="Tagged friends (comma separated)"
@@ -373,6 +462,7 @@ const CreatePost = () => {
 >>>>>>> Stashed changes
           Create Post
         </button>
+
       </form>
 
       <ToastContainer position="top-right" autoClose={2000} />
@@ -380,4 +470,6 @@ const CreatePost = () => {
   );
 };
 
+
 export default CreatePost;
+
