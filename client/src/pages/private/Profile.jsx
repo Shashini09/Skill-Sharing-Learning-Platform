@@ -427,33 +427,7 @@ const Profile = () => {
                 </svg>
                 Sign Out
               </button>
-              <Link
-                to={`/comment`}
-                className="block w-full text-center bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition duration-300 transform hover:scale-105"
-              >
-                Add Comments
-              </Link>
-
-              <Link
-                to={`/post`}
-                className="block w-full text-center bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition duration-300 transform hover:scale-105"
-              >
-                Add Post
-              </Link>
-
-              <Link
-                to={`/editpost`}
-                className="block w-full text-center bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition duration-300 transform hover:scale-105"
-              >
-                Edit Post
-              </Link>
-
-              <Link
-                to={`/feedpost`}
-                className="block w-full text-center bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition duration-300 transform hover:scale-105"
-              >
-                Post Feed
-              </Link>
+           
 
 
 

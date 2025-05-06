@@ -313,7 +313,7 @@ const PostFeed = () => {
                           )}
                         </div>
                         <div>
-                          <h3 className="font-medium text-gray-900">{post.userName || 'Anonymous'}</h3>
+                          <h3 className="font-medium text-gray-900">{post.userName || user?.name || 'Anonymous'}</h3>
                           <div className="text-sm text-gray-500 flex flex-wrap items-center">
                             <span>{formatDate(post.timestamp)}</span>
                             {post.location && (
