@@ -3,7 +3,7 @@ import Navbar from "./components/Navbar";
 import Home from "./pages/public/Home";
 import Login from "./pages/public/Login";
 import Profile from "./pages/private/Profile";
-import Feed from "./pages/private/Feed";
+
 import PrivateRoute from "./components/PrivateRoute";
 import { useAuth } from "./context/AuthContext";
 import "./App.css";
@@ -67,7 +67,7 @@ function App() {
             <Route path="/postfeed" element={<PostFeed/>} />
 
             <Route path="/frendsprofile/:id" element={<FriendsProfile/>} />
-            <Route path="/feed" element={<Feed />} />
+           
             <Route path="/learning-plans" element={<LearningPlanList />} />
             <Route path="/create-learning-plans" element={<CreateLearningPlan />} />
             <Route path="/edit-learning-plan/:id" component={<EditLearningPlan />} />
