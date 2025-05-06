@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
+
 import 'react-toastify/dist/ReactToastify.css';
 import { Link } from 'react-router-dom';
 import { useAuth } from "../../../context/AuthContext";
@@ -31,14 +32,17 @@ const PostFeed = () => {
     }
   };
 
+
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this post?')) {
       try {
         await axios.delete(`http://localhost:8080/api/posts/delete/${id}`, { withCredentials: true });
         fetchPosts();
+
         toast.success('Post deleted successfully');
       } catch (err) {
         toast.error('Delete failed. Please try again.');
+
       }
     }
   };
@@ -46,6 +50,7 @@ const PostFeed = () => {
   const startEdit = (post) => {
     setEditingPostId(post.id);
     setEditValues({
+
       topic: post.topic || '',
       description: post.description || '',
       mediaUrls: post.mediaUrls || [],
@@ -53,19 +58,23 @@ const PostFeed = () => {
       isPrivate: post.isPrivate || false,
       taggedFriends: post.taggedFriends?.join(', ') || '',
       location: post.location || ''
+
     });
   };
 
   const handleEditChange = (e) => {
+
     const { name, value, type, checked } = e.target;
     setEditValues({ 
       ...editValues, 
       [name]: type === 'checkbox' ? checked : value 
     });
+
   };
 
   const handleUpdate = async (id) => {
     try {
+
       // Process taggedFriends back to array if it's a string
       const processedValues = {
         ...editValues,
@@ -75,10 +84,12 @@ const PostFeed = () => {
       };
 
       await axios.put(`http://localhost:8080/api/posts/update/${id}`, processedValues, {
+
         withCredentials: true
       });
       setEditingPostId(null);
       fetchPosts();
+
       toast.success('Post updated successfully');
     } catch (err) {
       toast.error('Update failed. Please try again.');
@@ -461,8 +472,12 @@ const PostFeed = () => {
       </div>
 
       <ToastContainer position="top-right" autoClose={3000} />
+
     </div>
   );
 };
 
+
 export default PostFeed;
+
+

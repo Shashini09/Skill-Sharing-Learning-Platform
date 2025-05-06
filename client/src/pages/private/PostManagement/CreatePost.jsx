@@ -1,19 +1,24 @@
+
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
 import { useAuth } from "../../../context/AuthContext";
+
 
 const CreatePost = () => {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   const [isListening, setIsListening] = useState(false);
   const [language, setLanguage] = useState('en-US');
   const navigate = useNavigate();
+
   const { user } = useAuth();
 
   console.log('User:', user);
   
+
   const [post, setPost] = useState({
     userId: '',
     topic: '',
@@ -23,7 +28,10 @@ const CreatePost = () => {
     isPrivate: false,
     taggedFriends: [],
     location: '',
-    timestamp: '',
+
+    timestamp: ''
+   
+
   });
 
   const [mediaFiles, setMediaFiles] = useState([]);
@@ -43,6 +51,7 @@ const CreatePost = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
+
     setPost({ ...post, [name]: type === 'checkbox' ? checked : value });
   };
 
@@ -59,10 +68,12 @@ const CreatePost = () => {
     setIsListening(true);
 
     recognition.onresult = (event) => {
+
       const transcript = Array.from(event.results)
         .map((r) => r[0].transcript)
         .join('');
       setPost((prev) => ({ ...prev, description: transcript }));
+
     };
     recognition.onerror = (event) => {
       toast.error(`Speech error: ${event.error}`);
@@ -79,6 +90,7 @@ const CreatePost = () => {
   };
 
   const detectLocation = () => {
+
     if (!navigator.geolocation) return toast.error('Geolocation not supported.');
     navigator.geolocation.getCurrentPosition(
       async ({ coords: { latitude, longitude } }) => {
@@ -96,6 +108,7 @@ const CreatePost = () => {
         }
       },
       () => toast.error('Location access denied.')
+
     );
   };
 
@@ -107,6 +120,7 @@ const CreatePost = () => {
   const handleDragOver = (e) => e.preventDefault();
 
   const handleFileValidation = (files) => {
+
     setMediaFiles((prev) => [
       ...prev,
       ...files.map((file) => ({ file, url: URL.createObjectURL(file) })),
@@ -120,12 +134,14 @@ const CreatePost = () => {
     const newIndex = index + direction;
     if (newIndex >= 0 && newIndex < files.length) {
       [files[index], files[newIndex]] = [files[newIndex], files[index]];
+
       setMediaFiles(files);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     console.log('Creating post with userId:', post.userId);
     try {
       const mediaUrls = [];
@@ -150,10 +166,12 @@ const CreatePost = () => {
     } catch (err) {
       console.error('❌ Error submitting post:', err);
       toast.error(`Failed to create post: ${err.response?.data || err.message}`);
+
     }
   };
 
   return (
+
     <div className="p-6 max-w-2xl mx-auto bg-white rounded-lg shadow-md">
       <h2 className="text-3xl font-bold mb-6 text-gray-800">Create New Post</h2>
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -207,6 +225,7 @@ const CreatePost = () => {
               onChange={(e) => setLanguage(e.target.value)}
               className="text-sm bg-white border rounded-lg px-2 py-1 focus:outline-none"
             >
+
               <option value="en-US">English</option>
               <option value="si-LK">Sinhala</option>
               <option value="ta-IN">Tamil</option>
@@ -287,6 +306,7 @@ const CreatePost = () => {
                     alt="Preview"
                     className="w-full max-h-40 object-cover rounded"
                   />
+
                 )}
               </div>
             ))}
@@ -295,14 +315,17 @@ const CreatePost = () => {
 
         {uploadProgress > 0 && uploadProgress < 100 && (
           <div className="w-full bg-gray-200 h-2 rounded">
+
             <div
               className="bg-blue-500 h-2 rounded"
               style={{ width: `${uploadProgress}%` }}
             ></div>
+
           </div>
         )}
 
         <label className="flex items-center space-x-2">
+
           <input
             type="checkbox"
             name="isPrivate"
@@ -329,10 +352,13 @@ const CreatePost = () => {
         >
           Create Post
         </button>
+
       </form>
       <ToastContainer position="top-right" autoClose={2000} />
     </div>
   );
 };
 
+
 export default CreatePost;
+
