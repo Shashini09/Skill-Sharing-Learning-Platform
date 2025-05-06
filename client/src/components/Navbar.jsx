@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import Notification from "./Notification"; // Import the Notification component
 
 const Navbar = () => {
   const { user, loading, logout } = useAuth();
@@ -9,6 +10,8 @@ const Navbar = () => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutError, setLogoutError] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0); // Notification count state
 
   // Check if the current route matches the link
   const isActive = (path) => {
@@ -36,6 +39,11 @@ const Navbar = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
+  // Toggle notifications
+  const toggleNotifications = () => {
+    setShowNotifications(!showNotifications);
+  };
+
   // Show loading state with skeleton placeholders
   if (loading) {
     return (
@@ -49,7 +57,6 @@ const Navbar = () => {
   }
 
   return (
-
     <div className="bg-indigo-900 bg-gradient-to-r from-indigo-900 to-indigo-800 text-white py-3 px-6 shadow-md">
       <div className="container mx-auto">
         <div className="flex justify-between items-center">
@@ -63,19 +70,16 @@ const Navbar = () => {
             </Link>
           </div>
 
-
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
             {user && (
               <>
-
                 <NavLink to="/profile" isActive={isActive("/profile")}>
                   Profile
                 </NavLink>
                 <NavLink to="/allusers" isActive={isActive("/allusers")}>
                   Friends
                 </NavLink>
-                
                 <NavLink to="/postfeed" isActive={isActive("/postfeed")}>
                   Feed
                 </NavLink>
@@ -100,6 +104,42 @@ const Navbar = () => {
                   Chat
                 </NavLink>
               </>
+            )}
+
+            {/* Notification Icon */}
+            {user && (
+              <div className="relative flex items-center">
+                <button
+                  onClick={toggleNotifications}
+                  className="relative text-white focus:outline-none"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 11-6 0m6 0H9"
+                    />
+                  </svg>
+                  {notificationCount > 0 && (
+                    <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+                      {notificationCount}
+                    </span>
+                  )}
+                </button>
+
+                {showNotifications && (
+                  <div className="absolute right-0 mt-2 w-80">
+                    <Notification />
+                  </div>
+                )}
+              </div>
             )}
 
             {/* User Info and Logout Button */}
@@ -233,14 +273,12 @@ const Navbar = () => {
                   <span className="ml-2 text-sm font-medium text-indigo-100">{user.name}</span>
                 </div>
                 <div className="flex flex-col space-y-2">
-
-                <MobileNavLink to="/profile" isActive={isActive("/profile")} onClick={toggleMobileMenu}>
+                  <MobileNavLink to="/profile" isActive={isActive("/profile")} onClick={toggleMobileMenu}>
                     Profile
                   </MobileNavLink>
                   <MobileNavLink to="/allusers" isActive={isActive("/allusers")} onClick={toggleMobileMenu}>
                     Friends
                   </MobileNavLink>
-                  
                   <MobileNavLink to="/postfeed" isActive={isActive("/postfeed")} onClick={toggleMobileMenu}>
                     Feed
                   </MobileNavLink>
