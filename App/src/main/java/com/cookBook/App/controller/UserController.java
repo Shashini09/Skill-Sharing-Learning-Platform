@@ -46,6 +46,21 @@ public class UserController {
         }
     }
 
+    // Delete a user
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable String id) {
+        try {
+            String principal = SecurityContextHolder.getContext().getAuthentication().getName();
+            if (principal == null || principal.trim().isEmpty()) {
+                return ResponseEntity.status(401).body("Authentication required");
+            }
+            userService.deleteUser(principal, id);
+            return ResponseEntity.ok().body("User deleted successfully");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     // Follow a user
     @PostMapping("/{id}/follow")
     public ResponseEntity<?> followUser(@PathVariable String id) {

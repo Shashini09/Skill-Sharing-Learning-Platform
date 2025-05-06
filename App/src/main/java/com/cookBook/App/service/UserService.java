@@ -41,6 +41,57 @@ public class UserService {
         }).orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + id));
     }
 
+    // Delete a user
+    public void deleteUser(String principal, String userId) {
+        if (principal == null || principal.trim().isEmpty()) {
+            throw new IllegalArgumentException("Invalid principal");
+        }
+        if (userId == null || userId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Invalid user ID");
+        }
+
+        // Find the current user by providerId
+        User currentUser = findByProviderId(principal);
+
+        // Check if the user to delete exists
+        User userToDelete = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
+
+        // Ensure the user can only delete their own account
+        if (!currentUser.getId().equals(userId)) {
+            throw new IllegalArgumentException("Unauthorized: You can only delete your own account");
+        }
+
+        // Remove the user from all followers' following lists
+        List<String> followerIds = userToDelete.getFollowers();
+        for (String followerId : followerIds) {
+            userRepository.findById(followerId).ifPresent(follower -> {
+                List<String> following = follower.getFollowing();
+                if (following.contains(userId)) {
+                    following.remove(userId);
+                    follower.setFollowing(following);
+                    userRepository.save(follower);
+                }
+            });
+        }
+
+        // Remove the user from all following users' followers lists
+        List<String> followingIds = userToDelete.getFollowing();
+        for (String followingId : followingIds) {
+            userRepository.findById(followingId).ifPresent(followed -> {
+                List<String> followers = followed.getFollowers();
+                if (followers.contains(userId)) {
+                    followers.remove(userId);
+                    followed.setFollowers(followers);
+                    userRepository.save(followed);
+                }
+            });
+        }
+
+        // Delete the user
+        userRepository.deleteById(userId);
+    }
+
     // Find user by providerId (OAuth2 principal)
     public User findByProviderId(String providerId) {
         if (providerId == null || providerId.trim().isEmpty()) {
