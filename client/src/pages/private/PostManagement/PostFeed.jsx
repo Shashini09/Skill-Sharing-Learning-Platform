@@ -26,6 +26,7 @@ const PostFeed = () => {
 
 
   const userName = user?.name || "Anonymous"; // Fallback if undefined
+  const userId = user?.id || null; // Fallback if undefined
 
   const toggleComments = (postId) => {
     setVisibleComments(prev => ({
@@ -631,16 +632,7 @@ const PostFeed = () => {
       ))}
     </ul>
 
-    <button
-      onClick={() => handleLike(post.id)}
-      className={`mt-6 px-4 py-2 rounded-lg shadow ${
-        userLikes[post.id]
-          ? 'bg-blue-600 text-white'
-          : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-      } transition`}
-    >
-      {userLikes[post.id] ? 'Liked' : 'Like'} ({likeCounts[post.id] || 0})
-    </button>
+ 
   </div>
 )}
 
@@ -649,12 +641,28 @@ const PostFeed = () => {
                     {/* Post Action Bar */}
                     <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-t border-gray-200">
                       <div className="flex items-center space-x-4">
-                        <button className="flex items-center text-gray-500 hover:text-blue-600 transition">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                          </svg>
-                          <span>{post.likes || 0}</span>
-                        </button>
+                      <button
+      onClick={() => handleLike(post.id)}
+      className={`flex items-center transition ${
+        userLikes[post.id] ? "text-blue-600" : "text-gray-500 hover:text-blue-600"
+      }`}
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-5 w-5 mr-1"
+        fill={userLikes[post.id] ? "currentColor" : "none"}
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+        />
+      </svg>
+      {userLikes[post.id] ? 'Liked' : 'Like'} ({likeCounts[post.id] || 0})
+    </button>
                         <button 
   onClick={() => toggleComments(post.id)} 
   className="flex items-center text-gray-500 hover:text-blue-600 transition"
