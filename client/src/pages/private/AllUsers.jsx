@@ -13,7 +13,7 @@ export default function AllUsers({ currentUser }) {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/users', {
+        const response = await axios.get('http://localhost:3001/users', {
           withCredentials: true,
         });
         // Map users to include isFollowed based on currentUser's following list
@@ -50,12 +50,12 @@ export default function AllUsers({ currentUser }) {
     try {
       if (isFollowed) {
         // Send POST request to unfollow endpoint
-        await axios.post(`http://localhost:8080/users/${userId}/unfollow`, null, {
+        await axios.post(`http://localhost:3001/users/${userId}/unfollow`, null, {
           withCredentials: true,
         });
       } else {
         // Send POST request to follow endpoint
-        await axios.post(`http://localhost:8080/users/${userId}/follow`, null, {
+        await axios.post(`http://localhost:3001/users/${userId}/follow`, null, {
           withCredentials: true,
         });
       }

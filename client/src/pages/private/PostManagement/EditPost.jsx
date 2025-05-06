@@ -28,7 +28,7 @@ const EditPost = () => {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const res = await axios.get(`http://localhost:8080/api/posts/${id}`);
+        const res = await axios.get(`http://localhost:3001/api/posts/${id}`);
         setPost(res.data);
         setMediaFiles(
           res.data.mediaUrls.map((url, i) => ({
@@ -65,10 +65,12 @@ const EditPost = () => {
 
     selectedFiles.forEach((file) => {
       if (mediaFiles.length + validFiles.length >= MAX_FILES) return;
+
       if (!ALLOWED_TYPES.includes(file.type)) {
         toast.error(`File type not allowed: ${file.name}`);
         return;
       }
+
       if (file.size > MAX_FILE_SIZE) {
         toast.error(`File too large: ${file.name}`);
         return;
@@ -129,7 +131,11 @@ const EditPost = () => {
         const formData = new FormData();
         formData.append('file', newMedia[i].file);
 
-        const res = await axios.post("http://localhost:8080/api/posts/upload", formData);
+        const res = await axios.post("http://localhost:3001/api/posts/upload", formData, {
+          onUploadProgress: (p) => setUploadProgress(Math.round((p.loaded * 100) / p.total)),
+          withCredentials: true
+        });
+
         mediaUrls.push(res.data);
         mediaTypes.push(newMedia[i].file.type.startsWith('video') ? 'video' : 'image');
       }
@@ -137,14 +143,14 @@ const EditPost = () => {
       mediaUrls.push(...existingMedia.map(m => m.url));
       mediaTypes.push(...existingMedia.map(m => m.type));
 
-      await axios.put(`http://localhost:8080/api/posts/update/${id}`, {
+      await axios.put(`http://localhost:3001/api/posts/update/${id}`, {
         ...post,
         mediaUrls,
         mediaTypes
       });
 
       toast.success("Post updated successfully!");
-      setTimeout(() => navigate('/'), 1500);
+      setTimeout(() => navigate('/postfeed'), 1500);
     } catch (err) {
       console.error(err);
       toast.error("Failed to update post.");

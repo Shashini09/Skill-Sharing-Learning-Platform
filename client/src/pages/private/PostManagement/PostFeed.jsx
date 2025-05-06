@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const PostFeed = () => {
   const [posts, setPosts] = useState([]);
@@ -10,7 +11,7 @@ const PostFeed = () => {
 
   const fetchPosts = async () => {
     try {
-      const res = await axios.get('http://localhost:8080/api/posts/all', { withCredentials: true });
+      const res = await axios.get('http://localhost:3001/api/posts/all', { withCredentials: true });
       setPosts(res.data);
     } catch (err) {
       toast.error('Failed to fetch posts');
@@ -20,7 +21,9 @@ const PostFeed = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this post?')) {
       try {
-        await axios.delete(`http://localhost:8080/api/posts/delete/${id}`, { withCredentials: true });
+        await axios.delete(`http://localhost:3001/api/posts/delete/${id}`, {
+          withCredentials: true,
+        });
         fetchPosts();
         toast.success('Post deleted');
       } catch (err) {
@@ -38,7 +41,7 @@ const PostFeed = () => {
       mediaTypes: post.mediaTypes,
       isPrivate: post.isPrivate,
       taggedFriends: post.taggedFriends,
-      location: post.location
+      location: post.location,
     });
   };
 
@@ -49,8 +52,8 @@ const PostFeed = () => {
 
   const handleUpdate = async (id) => {
     try {
-      await axios.put(`http://localhost:8080/api/posts/update/${id}`, editValues, {
-        withCredentials: true
+      await axios.put(`http://localhost:3001/api/posts/update/${id}`, editValues, {
+        withCredentials: true,
       });
       setEditingPostId(null);
       fetchPosts();
@@ -67,10 +70,11 @@ const PostFeed = () => {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-4">Post Feed</h2>
-      {posts.map(post => (
+      {posts.map((post) => (
         <div key={post.id} className="border rounded p-4 mb-4">
           {editingPostId === post.id ? (
             <>
+           
               <input
                 name="topic"
                 value={editValues.topic}
@@ -83,25 +87,49 @@ const PostFeed = () => {
                 onChange={handleEditChange}
                 className="w-full border p-2"
               />
-              <button onClick={() => handleUpdate(post.id)} className="bg-green-500 text-white px-4 py-1 rounded mt-2">Save</button>
-              <button onClick={() => setEditingPostId(null)} className="bg-gray-400 text-white px-4 py-1 rounded mt-2 ml-2">Cancel</button>
+              <button
+                onClick={() => handleUpdate(post.id)}
+                className="bg-green-500 text-white px-4 py-1 rounded mt-2"
+              >
+                Save
+              </button>
+              <button
+                onClick={() => setEditingPostId(null)}
+                className="bg-gray-400 text-white px-4 py-1 rounded mt-2 ml-2"
+              >
+                Cancel
+              </button>
             </>
           ) : (
             <>
               <h3 className="font-semibold text-lg">{post.topic}</h3>
               <p>{post.description}</p>
-              <p className="text-sm text-gray-600">{new Date(post.timestamp).toLocaleString()}</p>
-              {post.mediaUrls && post.mediaUrls.map((url, idx) => (
+              <p className="text-sm text-gray-600">
+                {new Date(post.timestamp).toLocaleString()}
+              </p>
+
+              {post.mediaUrls?.map((url, idx) =>
                 post.mediaTypes[idx] === 'video' ? (
                   <video key={idx} controls src={url} className="w-full mt-2" />
                 ) : (
                   <img key={idx} src={url} alt="media" className="w-full mt-2" />
                 )
-              ))}
-              {post.userId === userId && (
+              )}
+
+              {String(post.userId) === String(userId) && (
                 <div className="mt-2 flex gap-2">
-                  <button onClick={() => startEdit(post)} className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">Edit</button>
-                  <button onClick={() => handleDelete(post.id)} className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Delete</button>
+                  <button
+                    onClick={() => startEdit(post)}
+                    className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(post.id)}
+                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                  >
+                    Delete
+                  </button>
                 </div>
               )}
             </>
