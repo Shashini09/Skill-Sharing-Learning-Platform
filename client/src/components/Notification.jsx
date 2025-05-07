@@ -8,7 +8,8 @@ const Notification = () => {
 
   useEffect(() => {
     // Initialize WebSocket connection
-    const socket = new SockJS('http://localhost:8080/notifications-websocket');
+    const socket = new SockJS('http://localhost:8080/chat-websocket');
+
     const client = new Client({
       webSocketFactory: () => socket,
       reconnectDelay: 5000,
@@ -47,7 +48,7 @@ const Notification = () => {
   }, []);
 
   return (
-    <div className="fixed bottom-4 right-4 w-80 bg-white shadow-lg rounded-lg overflow-hidden">
+    <div className="fixed bottom-4 right-4 w-80 bg-gray-500 shadow-lg rounded-lg overflow-hidden">
       <div className="bg-blue-600 text-white px-4 py-2 font-bold">Notifications</div>
       <ul className="max-h-64 overflow-y-auto">
         {notifications.map((notification, index) => (
