@@ -14,18 +14,17 @@ const Chat = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [connectionStatus, setConnectionStatus] = useState('connecting');
+  const [editingMessageId, setEditingMessageId] = useState(null);
   const messagesEndRef = useRef(null);
   const subscriptionRef = useRef(null);
   const messageIds = useRef(new Set());
   const messageInputRef = useRef(null);
   const chatContainerRef = useRef(null);
 
-  // Scroll to bottom of messages
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Fetch chat history
   const fetchChatHistory = async () => {
     setIsLoading(true);
     try {
@@ -35,7 +34,6 @@ const Chat = () => {
           Authorization: `Bearer ${user?.token || localStorage.getItem('token') || ''}`,
         },
       });
-      // Deduplicate and sort by timestamp ascending
       const uniqueMessages = response.data
         .filter((msg, index, self) => self.findIndex((m) => m.id === msg.id) === index)
         .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
@@ -57,16 +55,13 @@ const Chat = () => {
       return;
     }
 
-    // Reset state
     setMessages([]);
     messageIds.current.clear();
     setError(null);
     setConnectionStatus('connecting');
 
-    // Fetch history
     fetchChatHistory();
 
-    // Initialize WebSocket
     const socket = new SockJS('http://localhost:8080/chat-websocket');
     const client = new Client({
       webSocketFactory: () => socket,
@@ -88,18 +83,30 @@ const Chat = () => {
       subscriptionRef.current = client.subscribe('/topic/groupchat', (message) => {
         try {
           const newMessage = JSON.parse(message.body);
-          if (messageIds.current.has(newMessage.id)) {
-            return;
+          if (newMessage.content === '[DELETED]') {
+            setMessages((prevMessages) =>
+              prevMessages.map((msg) =>
+                msg.id === newMessage.id
+                  ? { ...msg, content: '[DELETED]', timestamp: newMessage.timestamp }
+                  : msg
+              )
+            );
+          } else if (messageIds.current.has(newMessage.id)) {
+            setMessages((prevMessages) =>
+              prevMessages.map((msg) =>
+                msg.id === newMessage.id ? newMessage : msg
+              )
+            );
+          } else {
+            messageIds.current.add(newMessage.id);
+            setMessages((prevMessages) => [...prevMessages, newMessage]);
           }
-          messageIds.current.add(newMessage.id);
-          setMessages((prevMessages) => [...prevMessages, newMessage]);
         } catch (error) {
           console.error('Error parsing message:', error);
           setError('Error receiving message');
         }
       });
       
-      // Focus on input field after connection
       messageInputRef.current?.focus();
     };
 
@@ -125,7 +132,6 @@ const Chat = () => {
     client.activate();
     setStompClient(client);
 
-    // Cleanup
     return () => {
       if (client && client.connected) {
         if (subscriptionRef.current) {
@@ -148,16 +154,43 @@ const Chat = () => {
     e?.preventDefault();
     
     if (messageInput.trim() && stompClient && stompClient.connected) {
-      stompClient.publish({
-        destination: '/app/sendMessage',
-        body: JSON.stringify(messageInput),
-      });
+      if (editingMessageId) {
+        stompClient.publish({
+          destination: '/app/updateMessage',
+          body: JSON.stringify({
+            messageId: editingMessageId,
+            content: messageInput
+          }),
+        });
+        setEditingMessageId(null);
+      } else {
+        stompClient.publish({
+          destination: '/app/sendMessage',
+          body: JSON.stringify(messageInput),
+        });
+      }
       setMessageInput('');
-      
-      // Focus back on input after sending
       messageInputRef.current?.focus();
     } else if (!stompClient?.connected) {
       setError('Cannot send message: Not connected');
+    }
+  };
+
+  const editMessage = (messageId, content) => {
+    setEditingMessageId(messageId);
+    setMessageInput(content);
+    messageInputRef.current?.focus();
+  };
+
+  const deleteMessage = (messageId) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this message?');
+    if (confirmDelete && stompClient && stompClient.connected) {
+      stompClient.publish({
+        destination: '/app/deleteMessage',
+        body: messageId,
+      });
+    } else if (!stompClient?.connected) {
+      setError('Cannot delete message: Not connected');
     }
   };
 
@@ -166,9 +199,12 @@ const Chat = () => {
       e.preventDefault();
       sendMessage();
     }
+    if (e.key === 'Escape' && editingMessageId) {
+      setEditingMessageId(null);
+      setMessageInput('');
+    }
   };
 
-  // Group messages by date
   const groupMessagesByDate = () => {
     const groups = [];
     let currentDate = null;
@@ -201,18 +237,15 @@ const Chat = () => {
     return groups;
   };
 
-  // Format message timestamp
   const formatMessageTime = (timestamp) => {
     const date = new Date(timestamp);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Check if message is from current user
   const isCurrentUser = (senderId) => {
     return senderId === user?.id;
   };
 
-  // Get avatar initial
   const getInitial = (name) => {
     return name ? name.charAt(0).toUpperCase() : '?';
   };
@@ -241,7 +274,6 @@ const Chat = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-sky-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-xl overflow-hidden flex flex-col h-[calc(100vh-4rem)]">
-        {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-indigo-500 p-4 sm:p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -266,7 +298,6 @@ const Chat = () => {
           </div>
         </div>
 
-        {/* Error message */}
         {error && (
           <div className="bg-red-50 border-l-4 border-red-400 text-red-700 p-3 flex items-center justify-between">
             <div className="flex items-center">
@@ -287,7 +318,6 @@ const Chat = () => {
           </div>
         )}
 
-        {/* Loading state */}
         {isLoading && (
           <div className="flex-1 flex items-center justify-center bg-gray-50">
             <div className="text-center">
@@ -297,7 +327,6 @@ const Chat = () => {
           </div>
         )}
 
-        {/* Message container */}
         {!isLoading && (
           <div 
             ref={chatContainerRef}
@@ -345,14 +374,36 @@ const Chat = () => {
                           <span className="text-xs text-gray-500 ml-1">{msg.senderName}</span>
                         )}
                         
-                        <div
-                          className={`px-4 py-3 rounded-2xl ${
-                            isFromCurrentUser
-                              ? 'bg-blue-600 text-white rounded-br-none'
-                              : 'bg-blue-100 text-blue-900 rounded-bl-none'
-                          }`}
-                        >
-                          <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                        <div className="relative group">
+                          <div
+                            className={`px-4 py-3 rounded-2xl ${
+                              isFromCurrentUser
+                                ? 'bg-blue-600 text-white rounded-br-none'
+                                : 'bg-blue-100 text-blue-900 rounded-bl-none'
+                            } ${msg.content === '[DELETED]' ? 'opacity-50 italic' : ''}`}
+                          >
+                            <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                          </div>
+                          {isFromCurrentUser && msg.content !== '[DELETED]' && (
+                            <div className="absolute right-0 top-0 mt-2 mr-2 hidden group-hover:block">
+                              <button
+                                onClick={() => editMessage(msg.id, msg.content)}
+                                className="p-1 bg-blue-100 hover:bg-blue-200 rounded-full mr-1"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15.414H9v-2.828l8.586-8.586z" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={() => deleteMessage(msg.id)}
+                                className="p-1 bg-red-100 hover:bg-red-200 rounded-full"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4m-4 4v12m4-12v12" />
+                                </svg>
+                              </button>
+                            </div>
+                          )}
                         </div>
                         
                         <div className={`text-xs text-gray-400 ${isFromCurrentUser ? 'text-right mr-1' : 'ml-1'}`}>
@@ -374,7 +425,6 @@ const Chat = () => {
           </div>
         )}
 
-        {/* Message input */}
         <div className="p-4 border-t border-gray-200 bg-white">
           <form onSubmit={sendMessage} className="flex items-center space-x-3">
             <input
@@ -383,7 +433,7 @@ const Chat = () => {
               value={messageInput}
               onChange={(e) => setMessageInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Type your message..."
+              placeholder={editingMessageId ? 'Editing message...' : 'Type your message...'}
               className="flex-1 p-3 bg-blue-50 border border-transparent rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-blue-300 transition-all duration-300"
               disabled={connectionStatus !== 'connected'}
             />
@@ -396,6 +446,20 @@ const Chat = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
               </svg>
             </button>
+            {editingMessageId && (
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingMessageId(null);
+                  setMessageInput('');
+                }}
+                className="p-3 bg-gray-600 text-white rounded-full hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-300"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
           </form>
           {connectionStatus !== 'connected' && (
             <p className="text-xs text-gray-500 mt-2 text-center">
