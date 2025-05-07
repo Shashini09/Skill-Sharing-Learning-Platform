@@ -55,7 +55,7 @@ const Navbar = () => {
         <div className="flex justify-between items-center">
           {/* Logo and Brand */}
           <div className="flex items-center">
-            <Link to="/profile" className="text-xl font-bold text-white flex items-center">
+            <Link to="/" className="text-xl font-bold text-white flex items-center">
               <span className="text-2xl mr-2">🍲</span>
               <span className="bg-gradient-to-r from-white to-indigo-200 bg-clip-text text-transparent">
                 CookBook
@@ -82,7 +82,7 @@ const Navbar = () => {
                 <NavLink to="/createpost" isActive={isActive("/createpost")}>
                   Create
                 </NavLink>
-                <NavLink to="/learning-plans" isActive={isActive("/postfeed")}>
+                <NavLink to="/learning-plans" isActive={isActive("/profile")}>
                   Learning Plans
                 </NavLink>
                 <NavLink to="/chat" isActive={isActive("/chat")}>

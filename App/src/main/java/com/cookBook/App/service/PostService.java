@@ -8,11 +8,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class PostService {
@@ -25,6 +25,7 @@ public class PostService {
     @Autowired
     private UserRepository userRepository;
 
+    @Transactional
     public Post createPost(Post post) {
         post.setTimestamp(LocalDateTime.now());
         return postRepository.save(post);
@@ -40,13 +41,14 @@ public class PostService {
                     return post;
                 }
                 Optional<User> user = userRepository.findById(post.getUserId());
-                post.setUserName(user.isPresent() ? user.get().getName() : "Anonymous");
+                post.setUserName(user.map(User::getName).orElse("Anonymous"));
+                return post;
             } catch (Exception e) {
                 logger.error("Error processing post {}: {}", post.getId(), e.getMessage(), e);
                 post.setUserName("Anonymous");
+                return post;
             }
-            return post;
-        }).collect(Collectors.toList());
+        }).toList();
     }
 
     public Optional<Post> getPostById(String id) {
@@ -59,7 +61,7 @@ public class PostService {
                     return;
                 }
                 Optional<User> user = userRepository.findById(p.getUserId());
-                p.setUserName(user.isPresent() ? user.get().getName() : "Anonymous");
+                p.setUserName(user.map(User::getName).orElse("Anonymous"));
             } catch (Exception e) {
                 logger.error("Error processing post {}: {}", p.getId(), e.getMessage(), e);
                 p.setUserName("Anonymous");
@@ -68,20 +70,25 @@ public class PostService {
         return post;
     }
 
+    @Transactional
     public Post updatePost(String id, Post updatedPost) {
         return postRepository.findById(id).map(post -> {
-            post.setTopic(updatedPost.getTopic());
-            post.setDescription(updatedPost.getDescription());
-            post.setMediaUrls(updatedPost.getMediaUrls());
-            post.setMediaTypes(updatedPost.getMediaTypes());
+            if (updatedPost.getTopic() != null) post.setTopic(updatedPost.getTopic());
+            if (updatedPost.getDescription() != null) post.setDescription(updatedPost.getDescription());
+            if (updatedPost.getMediaUrls() != null) post.setMediaUrls(updatedPost.getMediaUrls());
+            if (updatedPost.getMediaTypes() != null) post.setMediaTypes(updatedPost.getMediaTypes());
             post.setPrivate(updatedPost.isPrivate());
-            post.setTaggedFriends(updatedPost.getTaggedFriends());
-            post.setLocation(updatedPost.getLocation());
+            if (updatedPost.getTaggedFriends() != null) post.setTaggedFriends(updatedPost.getTaggedFriends());
+            if (updatedPost.getLocation() != null) post.setLocation(updatedPost.getLocation());
             return postRepository.save(post);
-        }).orElseThrow(() -> new RuntimeException("Post not found"));
+        }).orElseThrow(() -> new RuntimeException("Post not found with id: " + id));
     }
 
+    @Transactional
     public void deletePost(String id) {
+        if (!postRepository.existsById(id)) {
+            throw new RuntimeException("Post not found with id: " + id);
+        }
         postRepository.deleteById(id);
     }
 }
