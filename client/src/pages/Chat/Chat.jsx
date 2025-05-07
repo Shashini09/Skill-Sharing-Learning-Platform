@@ -6,7 +6,7 @@ import { Client } from '@stomp/stompjs';
 import axios from 'axios';
 
 const Chat = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth(); // Assuming useAuth provides logout
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState('');
@@ -27,11 +27,20 @@ const Chat = () => {
 
   const fetchChatHistory = async () => {
     setIsLoading(true);
+    const token = user?.token || localStorage.getItem('token');
+    console.log('Fetching chat history with token:', token); // Debug token
+    if (!token) {
+      setError('No authentication token found. Please log in.');
+      setIsLoading(false);
+      navigate('/login');
+      return;
+    }
+
     try {
       const response = await axios.get('http://localhost:8080/chat/history', {
         withCredentials: true,
         headers: {
-          Authorization: `Bearer ${user?.token || localStorage.getItem('token') || ''}`,
+          Authorization: `Bearer ${token}`,
         },
       });
       const uniqueMessages = response.data
@@ -43,14 +52,22 @@ const Chat = () => {
       setError(null);
     } catch (error) {
       console.error('Error fetching chat history:', error.response?.status, error.message);
-      setError('Failed to load chat history');
+      if (error.response?.status === 401) {
+        setError('Session expired. Please log in again.');
+        logout?.(); // Clear auth state if logout is available
+        localStorage.removeItem('token'); // Clear invalid token
+        navigate('/login');
+      } else {
+        setError('Failed to load chat history');
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    if (!user) {
+    if (!user || (!user.token && !localStorage.getItem('token'))) {
+      console.log('No user or token found, redirecting to login');
       navigate('/login');
       return;
     }
@@ -62,12 +79,14 @@ const Chat = () => {
 
     fetchChatHistory();
 
+    const token = user?.token || localStorage.getItem('token');
+    console.log('Connecting WebSocket with token:', token); // Debug token
     const socket = new SockJS('http://localhost:8080/chat-websocket');
     const client = new Client({
       webSocketFactory: () => socket,
       reconnectDelay: 5000,
       connectHeaders: {
-        Authorization: `Bearer ${user?.token || localStorage.getItem('token') || ''}`,
+        Authorization: `Bearer ${token}`,
       },
       debug: (str) => {
         console.log('STOMP: ' + str);
@@ -114,6 +133,12 @@ const Chat = () => {
       console.error('Broker reported error: ' + frame.headers['message']);
       setError('Connection error');
       setConnectionStatus('error');
+      if (frame.headers['message'].includes('Unauthorized')) {
+        setError('WebSocket authentication failed. Please log in again.');
+        logout?.();
+        localStorage.removeItem('token');
+        navigate('/login');
+      }
     };
 
     client.onWebSocketError = (error) => {
@@ -144,7 +169,7 @@ const Chat = () => {
       messageIds.current.clear();
       setError(null);
     };
-  }, [user, navigate]);
+  }, [user, navigate, logout]);
 
   useEffect(() => {
     scrollToBottom();

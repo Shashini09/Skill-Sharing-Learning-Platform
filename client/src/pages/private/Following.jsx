@@ -14,8 +14,7 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState('posts');
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (user && user.id) {
+  useEffect(() => {    if (user && user.id) {
       const fetchUserAndActivity = async () => {
         try {
           // Fetch user data
