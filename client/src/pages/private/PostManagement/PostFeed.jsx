@@ -133,7 +133,8 @@ const PostFeed = () => {
         `http://localhost:8080/api/likes`,
         {
           postId,
-          userId,
+          userId:userId,
+          user:userName,
           timestamp: new Date().toISOString(),
         },
         { withCredentials: true }
@@ -155,7 +156,7 @@ const PostFeed = () => {
   
   const fetchUserLiked = async (postId) => {
     const res = await axios.get(
-      `http://localhost:8080/api/likes/${postId}/user/${userId}`,
+      `http://localhost:8080/api/likes/${postId}/user/${userName}`,
       { withCredentials: true }
     );
     setUserLikes((prev) => ({ ...prev, [postId]: res.data }));
