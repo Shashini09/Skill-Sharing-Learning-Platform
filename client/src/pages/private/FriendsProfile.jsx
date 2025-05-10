@@ -106,7 +106,7 @@ const FriendsProfile = () => {
                   
                   {/* Action Buttons */}
                   <div className="flex gap-2 mt-3 sm:mt-0">
-                    <button
+                    {/* <button
                       onClick={toggleFollow}
                       className={`px-4 py-1.5 rounded text-sm font-medium transition-all duration-200 ${
                         isFollowing 
@@ -115,7 +115,7 @@ const FriendsProfile = () => {
                       }`}
                     >
                       {isFollowing ? 'Following' : 'Follow'}
-                    </button>
+                    </button> */}
                     <Link
                       to={`/chat`}
                       className="px-4 py-1.5 bg-gray-100 text-gray-800 rounded text-sm font-medium hover:bg-gray-200 transition-all duration-200 flex items-center"

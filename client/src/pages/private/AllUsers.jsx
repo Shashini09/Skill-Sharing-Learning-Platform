@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { useAuth } from "../../context/AuthContext";
 
-export default function AllUsers({ currentUser }) {
+export default function AllUsers() {
+  const { user } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -11,15 +13,14 @@ export default function AllUsers({ currentUser }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
 
+  const currentUser = user;
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const response = await axios.get('http://localhost:8080/users', {
           withCredentials: true,
         });
-        // Log the API response for debugging
-        console.log('Fetched users:', response.data);
-        console.log('Current user:', currentUser);
 
         // Ensure response.data is an array
         const fetchedUsers = Array.isArray(response.data) ? response.data : [];
@@ -33,9 +34,10 @@ export default function AllUsers({ currentUser }) {
           console.warn('Some users were excluded due to missing or invalid IDs:', fetchedUsers);
         }
 
+        // Map users and set isFollowed based on currentUser's following list
         const updatedUsers = validUsers.map(user => ({
           ...user,
-          isFollowed: currentUser?.following?.includes(user.id) || false,
+          isFollowed: currentUser?.following?.includes(user.id.toString()) || false,
         }));
         setUsers(updatedUsers);
         setLoading(false);
@@ -82,15 +84,22 @@ export default function AllUsers({ currentUser }) {
 
   const filteredUsers = users
     .filter((dbUser) => {
-      // Exclude current user if currentUser and currentUser.id are valid
-      if (currentUser && currentUser.id !== undefined && currentUser.id !== null) {
-        const isNotCurrentUser = String(dbUser.id) !== String(currentUser.id);
-        console.log(`Comparing dbUser.id=${dbUser.id} (${typeof dbUser.id}) with currentUser.id=${currentUser.id} (${typeof currentUser.id}): ${isNotCurrentUser ? 'Excluding' : 'Including'}`);
-        return isNotCurrentUser;
+      // Skip if currentUser or currentUser.id is invalid
+      if (!currentUser || currentUser.id === undefined || currentUser.id === null) {
+        console.warn('Invalid currentUser, skipping user exclusion:', currentUser);
+        return true; // Include all users if currentUser is invalid
       }
-      // Log warning if currentUser is invalid
-      console.warn('No valid currentUser, including all users. Check currentUser prop:', currentUser);
-      return true;
+
+      // Convert IDs to strings for consistent comparison
+      const dbUserId = String(dbUser.id);
+      const currentUserId = String(currentUser.id);
+
+      // Exclude current user
+      const isNotCurrentUser = dbUserId !== currentUserId;
+      if (!isNotCurrentUser) {
+        console.log(`Excluding current user: dbUser.id=${dbUserId}, currentUser.id=${currentUserId}`);
+      }
+      return isNotCurrentUser;
     })
     .filter((dbUser) => 
       dbUser.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -102,9 +111,6 @@ export default function AllUsers({ currentUser }) {
       if (selectedFilter === 'not-following') return !dbUser.isFollowed;
       return true;
     });
-
-  // Log filtered users for debugging
-  console.log('Filtered users:', filteredUsers);
 
   if (loading) {
     return (
@@ -239,7 +245,6 @@ export default function AllUsers({ currentUser }) {
                         src={dbUser.picture}
                         alt={`${dbUser.name}'s profile`}
                         className="h-16 w-16 rounded-full object-cover border-2 border-indigo-100 shadow-sm"
-                        onError={(e) => (e.target.src = 'https://via.placeholder.com/100')}
                       />
                     ) : (
                       <div className="h-16 w-16 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-xl font-bold">
