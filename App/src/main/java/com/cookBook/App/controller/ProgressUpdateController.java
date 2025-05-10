@@ -1,11 +1,12 @@
 package com.cookBook.App.controller;
 
-
 import com.cookBook.App.model.ProgressUpdate;
 import com.cookBook.App.service.ProgressUpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/progress-updates")
@@ -30,7 +31,14 @@ public class ProgressUpdateController {
         }
     }
 
-    // DTO for request body
+    // New endpoint to fetch all progress updates
+    @GetMapping("/all")
+    public ResponseEntity<List<ProgressUpdate>> getAllProgressUpdates() {
+        List<ProgressUpdate> progressUpdates = progressUpdateService.getAllProgressUpdates();
+        return ResponseEntity.ok(progressUpdates);
+    }
+
+    // DTO for request body (unchanged)
     public static class ProgressUpdateRequest {
         private String userId;
         private String templateType;

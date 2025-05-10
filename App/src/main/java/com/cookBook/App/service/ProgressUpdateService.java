@@ -1,6 +1,5 @@
 package com.cookBook.App.service;
 
-
 import com.cookBook.App.model.LearningPlan;
 import com.cookBook.App.model.ProgressUpdate;
 import com.cookBook.App.model.User;
@@ -11,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -26,19 +26,16 @@ public class ProgressUpdateService {
     private LearningPlanRepository learningPlanRepository;
 
     public ProgressUpdate createProgressUpdate(String userId, String templateType, String content, String learningPlanId) throws Exception {
-        // Validate user
         Optional<User> userOptional = userRepository.findById(userId);
         if (!userOptional.isPresent()) {
             throw new Exception("User not found");
         }
 
-        // Validate learning plan
         Optional<LearningPlan> learningPlanOptional = learningPlanRepository.findById(learningPlanId);
         if (!learningPlanOptional.isPresent()) {
             throw new Exception("Learning Plan not found");
         }
 
-        // Create and save progress update
         ProgressUpdate progressUpdate = new ProgressUpdate();
         progressUpdate.setUser(userOptional.get());
         progressUpdate.setLearningPlan(learningPlanOptional.get());
@@ -47,5 +44,9 @@ public class ProgressUpdateService {
         progressUpdate.setCreatedAt(new Date());
 
         return progressUpdateRepository.save(progressUpdate);
+    }
+
+    public List<ProgressUpdate> getAllProgressUpdates() {
+        return progressUpdateRepository.findAll();
     }
 }

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { Save, X, BookOpen } from 'lucide-react';
 
 const CreateProgressUpdate = () => {
   const { user } = useAuth();
   const { id } = useParams(); // Get the learning plan ID from the URL
+  const navigate = useNavigate(); // Hook for navigation
   const [formData, setFormData] = useState({
     templateType: '',
     content: '',
@@ -95,6 +96,8 @@ const CreateProgressUpdate = () => {
         content: '',
         learningPlanLink: id ? `http://localhost:8080/learning-plans/${id}` : ''
       });
+      // Redirect to /post-feed after successful submission
+      navigate('/progress-feed');
     } catch (err) {
       console.error('Error creating progress update:', err);
       let errorMessage = 'Failed to create progress update. Please try again.';

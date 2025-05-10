@@ -27,11 +27,12 @@ export default function CreateLearningPlan() {
 
   const [activity, setActivity] = useState({ topic: '', description: '', resources: [] });
   const [resource, setResource] = useState({ title: '', url: '' });
+  const [progressUpdate, setProgressUpdate] = useState({ templateType: '', content: '' });
   const [error, setError] = useState('');
-  
-  // Success modals state
+  const [learningPlanId, setLearningPlanId] = useState(null); // Store learning plan ID
   const [showPlanSuccessModal, setShowPlanSuccessModal] = useState(false);
   const [showActivitySuccessModal, setShowActivitySuccessModal] = useState(false);
+  const [showProgressSuccessModal, setShowProgressSuccessModal] = useState(false);
 
   const handlePlanChange = (e) => {
     setLearningPlan({ ...learningPlan, [e.target.name]: e.target.value });
@@ -45,6 +46,11 @@ export default function CreateLearningPlan() {
 
   const handleResourceChange = (e) => {
     setResource({ ...resource, [e.target.name]: e.target.value });
+    setError('');
+  };
+
+  const handleProgressChange = (e) => {
+    setProgressUpdate({ ...progressUpdate, [e.target.name]: e.target.value });
     setError('');
   };
 
@@ -71,13 +77,10 @@ export default function CreateLearningPlan() {
         ...prev,
         activities: [...prev.activities, activity],
       }));
-      
-      // Show success message when activity is added
       setShowActivitySuccessModal(true);
       setTimeout(() => {
         setShowActivitySuccessModal(false);
       }, 1500);
-      
       setActivity({ topic: '', description: '', resources: [] });
       setResource({ title: '', url: '' });
       setError('');
@@ -92,7 +95,7 @@ export default function CreateLearningPlan() {
     setLearningPlan({ ...learningPlan, activities: updated });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmitLearningPlan = async (e) => {
     e.preventDefault();
     if (!user?.id) {
       setError('You must be logged in to create a learning plan.');
@@ -110,26 +113,63 @@ export default function CreateLearningPlan() {
         startDate: new Date(learningPlan.startDate).toISOString(),
       };
 
-      await axios.post('http://localhost:8080/api/learning-plans/create', dataToSend, {
+      const response = await axios.post('http://localhost:8080/api/learning-plans/create', dataToSend, {
         withCredentials: true,
       });
 
-      // Show success modal
+      setLearningPlanId(response.data.id); // Store the learning plan ID
       setShowPlanSuccessModal(true);
-      
-      // Reset form
       setLearningPlan({ title: '', description: '', startDate: '', activities: [] });
       setActivity({ topic: '', description: '', resources: [] });
       setResource({ title: '', url: '' });
       setError('');
 
-      // Redirect after showing success message
+      // Keep the form open to allow adding a progress update
       setTimeout(() => {
         setShowPlanSuccessModal(false);
+      }, 2000);
+    } catch (error) {
+      setError('Error creating learning plan: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const handleSubmitProgressUpdate = async (e) => {
+    e.preventDefault();
+    if (!user?.id) {
+      setError('You must be logged in to create a progress update.');
+      return;
+    }
+    if (!progressUpdate.templateType || !progressUpdate.content) {
+      setError('Please provide both template type and content for the progress update.');
+      return;
+    }
+    if (!learningPlanId) {
+      setError('No learning plan selected. Please create a learning plan first.');
+      return;
+    }
+
+    try {
+      const progressData = {
+        userId: user.id,
+        templateType: progressUpdate.templateType,
+        content: progressUpdate.content,
+        learningPlanId: learningPlanId,
+      };
+
+      await axios.post('http://localhost:8080/api/progress-updates/create', progressData, {
+        withCredentials: true,
+      });
+
+      setShowProgressSuccessModal(true);
+      setProgressUpdate({ templateType: '', content: '' });
+      setError('');
+
+      setTimeout(() => {
+        setShowProgressSuccessModal(false);
         navigate('/learning-plans');
       }, 2000);
     } catch (error) {
-      setError('Error creating learning plan: ' + error.message);
+      setError('Error creating progress update: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -143,7 +183,7 @@ export default function CreateLearningPlan() {
           </h1>
         </div>
 
-        {/* Main Form */}
+        {/* Learning Plan Form */}
         <div className="space-y-6 mb-8">
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -194,7 +234,6 @@ export default function CreateLearningPlan() {
               <BookOpen className="mr-2 text-indigo-500" size={18} />
               Your Learning Activities
             </h2>
-            
             <div className="grid gap-4 md:grid-cols-2">
               {learningPlan.activities.map((act, index) => (
                 <div 
@@ -245,7 +284,6 @@ export default function CreateLearningPlan() {
             <Plus className="mr-2" size={18} />
             Add New Activity
           </h2>
-
           <div className="space-y-4">
             <input
               type="text"
@@ -263,13 +301,11 @@ export default function CreateLearningPlan() {
               className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
               rows="3"
             />
-
             <div className="bg-white p-4 rounded-lg border border-gray-200">
               <h3 className="text-gray-700 font-medium mb-3 flex items-center">
                 <Library className="mr-2 text-indigo-500" size={16} />
                 Learning Resources
               </h3>
-              
               {activity.resources.length > 0 && (
                 <div className="mb-4 space-y-2">
                   {activity.resources.map((res, index) => (
@@ -300,7 +336,6 @@ export default function CreateLearningPlan() {
                   ))}
                 </div>
               )}
-
               <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
@@ -324,12 +359,10 @@ export default function CreateLearningPlan() {
                   className="bg-indigo-500 text-white px-3 py-2 rounded-lg hover:bg-indigo-600 disabled:bg-indigo-300 transition-colors flex items-center justify-center whitespace-nowrap"
                 >
                   <Plus size={16} className="mr-1" />
-                  
                 </button>
               </div>
             </div>
           </div>
-
           <button
             onClick={addActivity}
             disabled={!activity.topic || !activity.description}
@@ -340,13 +373,52 @@ export default function CreateLearningPlan() {
           </button>
         </div>
 
-        {/* Submit Button */}
+        {/* Submit Learning Plan Button */}
         <button
-          onClick={handleSubmit}
-          className="w-full bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-700 hover:to-blue-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg"
+          onClick={handleSubmitLearningPlan}
+          className="w-full bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-700 hover:to-blue-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg mb-8"
         >
           Create Learning Plan
         </button>
+
+        {/* Progress Update Form (Shown after Learning Plan Creation) */}
+        {learningPlanId && (
+          <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-6 rounded-xl mb-8 border border-indigo-100 shadow-sm">
+            <h2 className="text-xl font-semibold text-indigo-700 mb-5 flex items-center">
+              <FileText className="mr-2" size={18} />
+              Add Progress Update
+            </h2>
+            <div className="space-y-4">
+              <select
+                name="templateType"
+                value={progressUpdate.templateType}
+                onChange={handleProgressChange}
+                className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              >
+                <option value="">Select Template Type</option>
+                <option value="weekly">Weekly Update</option>
+                <option value="milestone">Milestone Update</option>
+                <option value="completion">Completion Update</option>
+              </select>
+              <textarea
+                name="content"
+                value={progressUpdate.content}
+                onChange={handleProgressChange}
+                placeholder="Describe your progress..."
+                className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                rows="4"
+              />
+            </div>
+            <button
+              onClick={handleSubmitProgressUpdate}
+              disabled={!progressUpdate.templateType || !progressUpdate.content}
+              className="mt-6 bg-indigo-500 hover:bg-indigo-600 text-white px-5 py-2 rounded-lg disabled:bg-indigo-300 transition-all duration-200 flex items-center justify-center"
+            >
+              <Plus size={16} className="mr-1" />
+              Add Progress Update
+            </button>
+          </div>
+        )}
 
         {/* Error Message */}
         {error && (
@@ -354,57 +426,68 @@ export default function CreateLearningPlan() {
             {error}
           </div>
         )}
-      </div>
 
-      {/* Success Modal for Learning Plan Creation */}
-      {showPlanSuccessModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-40">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full transform animate-popup">
-            <div className="text-center">
-              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="h-10 w-10 text-green-500" />
+        {/* Success Modal for Learning Plan Creation */}
+        {showPlanSuccessModal && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-40">
+            <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full transform animate-popup">
+              <div className="text-center">
+                <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="h-10 w-10 text-green-500" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">Success!</h3>
+                <p className="text-gray-600">Learning plan created successfully!</p>
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">Success!</h3>
-              
-             
             </div>
           </div>
-        </div>
-      )}
-      
-      {/* Success Toast for Activity Addition */}
-      {showActivitySuccessModal && (
-        <div className="fixed bottom-6 right-6 z-50">
-          <div className="bg-white rounded-lg shadow-lg border border-green-100 p-4 flex items-center space-x-3 animate-slideIn">
-            <div className="bg-green-100 p-2 rounded-full">
-              <CheckCircle className="h-5 w-5 text-green-500" />
+        )}
+        
+        {/* Success Toast for Activity Addition */}
+        {showActivitySuccessModal && (
+          <div className="fixed bottom-6 right-6 z-50">
+            <div className="bg-white rounded-lg shadow-lg border border-green-100 p-4 flex items-center space-x-3 animate-slideIn">
+              <div className="bg-green-100 p-2 rounded-full">
+                <CheckCircle className="h-5 w-5 text-green-500" />
+              </div>
+              <p className="text-gray-700">Activity added successfully!</p>
             </div>
-            <p className="text-gray-700">Activity added successfully!</p>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Custom Animations */}
-      <style jsx>{`
-        @keyframes popup {
-          0% { opacity: 0; transform: scale(0.9); }
-          70% { opacity: 1; transform: scale(1.05); }
-          100% { opacity: 1; transform: scale(1); }
-        }
-        
-        @keyframes slideIn {
-          0% { opacity: 0; transform: translateX(30px); }
-          100% { opacity: 1; transform: translateX(0); }
-        }
-        
-        .animate-popup {
-          animation: popup 0.4s ease-out forwards;
-        }
-        
-        .animate-slideIn {
-          animation: slideIn 0.3s ease-out forwards;
-        }
-      `}</style>
+        {/* Success Toast for Progress Update */}
+        {showProgressSuccessModal && (
+          <div className="fixed bottom-6 right-6 z-50">
+            <div className="bg-white rounded-lg shadow-lg border border-green-100 p-4 flex items-center space-x-3 animate-slideIn">
+              <div className="bg-green-100 p-2 rounded-full">
+                <CheckCircle className="h-5 w-5 text-green-500" />
+              </div>
+              <p className="text-gray-700">Progress update added successfully!</p>
+            </div>
+          </div>
+        )}
+
+        {/* Custom Animations */}
+        <style jsx>{`
+          @keyframes popup {
+            0% { opacity: 0; transform: scale(0.9); }
+            70% { opacity: 1; transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+          }
+          
+          @keyframes slideIn {
+            0% { opacity: 0; transform: translateX(30px); }
+            100% { opacity: 1; transform: translateX(0); }
+          }
+          
+          .animate-popup {
+            animation: popup 0.4s ease-out forwards;
+          }
+          
+          .animate-slideIn {
+            animation: slideIn 0.3s ease-out forwards;
+          }
+        `}</style>
+      </div>
     </div>
   );
 }
