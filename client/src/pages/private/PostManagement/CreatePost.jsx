@@ -162,6 +162,7 @@ const CreatePost = () => {
       setMediaFiles(updated);
     }
   };
+  // const handleFileClick = (index) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
