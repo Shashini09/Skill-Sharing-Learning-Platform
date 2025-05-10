@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
-import { Pencil, Trash2, X, Plus, BookOpen, Calendar, ExternalLink, Search } from 'lucide-react';
+import { Pencil, Trash2, X, Plus, BookOpen, Calendar, ExternalLink, Search, Save, Check, PlusCircle, Trash } from 'lucide-react';
 
 function LearningPlanList() {
   const { user } = useAuth();
@@ -10,6 +10,9 @@ function LearningPlanList() {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedPlan, setEditedPlan] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,14 +37,125 @@ function LearningPlanList() {
         await axios.delete(`http://localhost:8080/api/learning-plans/delete/${id}`, { withCredentials: true });
         setLearningPlans((prev) => prev.filter((plan) => plan.id !== id));
         setSelectedPlan(null);
+        setIsEditing(false);
       } catch (error) {
         console.error('Error deleting learning plan:', error);
       }
     }
   };
 
-  const handleEdit = (id) => {
-    navigate(`/edit-learning-plan/${id}`);
+  const startEditing = () => {
+    setEditedPlan(JSON.parse(JSON.stringify(selectedPlan))); // Deep copy
+    setIsEditing(true);
+  };
+
+  const cancelEditing = () => {
+    setIsEditing(false);
+    setEditedPlan(null);
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      const response = await axios.put(
+        `http://localhost:8080/api/learning-plans/update/${editedPlan.id}`, 
+        editedPlan, 
+        { withCredentials: true }
+      );
+      
+      // Update both the selected plan and the plan in the list
+      setSelectedPlan(response.data);
+      setLearningPlans(prev => 
+        prev.map(plan => plan.id === response.data.id ? response.data : plan)
+      );
+      
+      setIsEditing(false);
+      setIsSaving(false);
+    } catch (error) {
+      console.error('Error updating learning plan:', error);
+      setIsSaving(false);
+      alert('Failed to update learning plan. Please try again.');
+    }
+  };
+
+  const handleEditField = (field, value) => {
+    setEditedPlan(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleEditActivity = (index, field, value) => {
+    const updatedActivities = [...editedPlan.activities];
+    updatedActivities[index] = {
+      ...updatedActivities[index],
+      [field]: value
+    };
+    
+    setEditedPlan(prev => ({
+      ...prev,
+      activities: updatedActivities
+    }));
+  };
+
+  const addNewActivity = () => {
+    const newActivity = {
+      topic: "New Activity",
+      description: "Description for the new activity",
+      resources: []
+    };
+    
+    setEditedPlan(prev => ({
+      ...prev,
+      activities: [...(prev.activities || []), newActivity]
+    }));
+  };
+
+  const removeActivity = (index) => {
+    const updatedActivities = [...editedPlan.activities];
+    updatedActivities.splice(index, 1);
+    
+    setEditedPlan(prev => ({
+      ...prev,
+      activities: updatedActivities
+    }));
+  };
+
+  const addResourceToActivity = (activityIndex) => {
+    const updatedActivities = [...editedPlan.activities];
+    if (!updatedActivities[activityIndex].resources) {
+      updatedActivities[activityIndex].resources = [];
+    }
+    
+    updatedActivities[activityIndex].resources.push({
+      title: "New Resource",
+      url: "https://example.com"
+    });
+    
+    setEditedPlan(prev => ({
+      ...prev,
+      activities: updatedActivities
+    }));
+  };
+
+  const editResource = (activityIndex, resourceIndex, field, value) => {
+    const updatedActivities = [...editedPlan.activities];
+    updatedActivities[activityIndex].resources[resourceIndex][field] = value;
+    
+    setEditedPlan(prev => ({
+      ...prev,
+      activities: updatedActivities
+    }));
+  };
+
+  const removeResource = (activityIndex, resourceIndex) => {
+    const updatedActivities = [...editedPlan.activities];
+    updatedActivities[activityIndex].resources.splice(resourceIndex, 1);
+    
+    setEditedPlan(prev => ({
+      ...prev,
+      activities: updatedActivities
+    }));
   };
 
   const filteredPlans = searchTerm 
@@ -53,7 +167,7 @@ function LearningPlanList() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cream-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="animate-pulse flex flex-col items-center">
           <div className="h-8 w-8 bg-purple-600 rounded-full mb-2"></div>
           <p className="text-purple-600 font-medium">Loading...</p>
@@ -64,7 +178,7 @@ function LearningPlanList() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-cream-50 p-6">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6">
         <div className="bg-white rounded-xl shadow-xl p-8 max-w-md w-full text-center">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <X size={24} className="text-red-500" />
@@ -80,7 +194,7 @@ function LearningPlanList() {
   }
 
   return (
-    <div className="min-h-screen bg-cream-50">
+    <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Header */}
         <div className="mb-8">
@@ -140,8 +254,14 @@ function LearningPlanList() {
                 {filteredPlans.map((plan) => (
                   <div
                     key={plan.id}
-                    onClick={() => setSelectedPlan(plan)}
-                    className={`cursor-pointer bg-white shadow-md rounded-xl border border-gray-100 transition-all duration-300 overflow-hidden hover:shadow-lg transform hover:-translate-y-1 ${
+                    onClick={() => {
+                      if (!isEditing) {
+                        setSelectedPlan(plan);
+                      }
+                    }}
+                    className={`cursor-pointer bg-white shadow-md rounded-xl border border-gray-100 transition-all duration-300 overflow-hidden hover:shadow-lg ${
+                      !isEditing ? "transform hover:-translate-y-1" : ""
+                    } ${
                       selectedPlan?.id === plan.id ? "ring-2 ring-purple-500" : ""
                     }`}
                   >
@@ -175,99 +295,284 @@ function LearningPlanList() {
                 <div className="h-3 bg-gradient-to-r from-purple-500 to-purple-700 rounded-t-xl"></div>
                 <div className="p-6 relative">
                   {/* Close Button */}
-                  <button
-                    onClick={() => setSelectedPlan(null)}
-                    className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow-md hover:bg-gray-100 transition"
-                  >
-                    <X size={20} className="text-gray-500" />
-                  </button>
+                  {!isEditing && (
+                    <button
+                      onClick={() => setSelectedPlan(null)}
+                      className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow-md hover:bg-gray-100 transition"
+                    >
+                      <X size={20} className="text-gray-500" />
+                    </button>
+                  )}
 
                   {/* Action Icons */}
                   <div className="absolute top-6 right-6 flex space-x-2">
-                    <button 
-                      onClick={() => handleEdit(selectedPlan.id)} 
-                      className="bg-amber-50 p-2 rounded-full text-amber-500 hover:bg-amber-100 transition"
-                    >
-                      <Pencil size={18} />
-                    </button>
-                    <button 
-                      onClick={() => handleDelete(selectedPlan.id)} 
-                      className="bg-red-50 p-2 rounded-full text-red-500 hover:bg-red-100 transition"
-                    >
-                      <Trash2 size={18} />
-                    </button>
+                    {isEditing ? (
+                      <>
+                        <button 
+                          onClick={handleSave} 
+                          disabled={isSaving}
+                          className="bg-green-50 p-2 rounded-full text-green-500 hover:bg-green-100 transition flex items-center"
+                        >
+                          {isSaving ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-500"></div>
+                          ) : (
+                            <Save size={18} />
+                          )}
+                        </button>
+                        <button 
+                          onClick={cancelEditing}
+                          className="bg-gray-50 p-2 rounded-full text-gray-500 hover:bg-gray-100 transition"
+                        >
+                          <X size={18} />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button 
+                          onClick={startEditing} 
+                          className="bg-amber-50 p-2 rounded-full text-amber-500 hover:bg-amber-100 transition"
+                        >
+                          <Pencil size={18} />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(selectedPlan.id)} 
+                          className="bg-red-50 p-2 rounded-full text-red-500 hover:bg-red-100 transition"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </>
+                    )}
                   </div>
 
                   <div className="space-y-6 pt-2">
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-800 mb-2">{selectedPlan.title}</h2>
-                      <p className="text-gray-600">{selectedPlan.description}</p>
-                    </div>
-                    
-                    <div className="flex items-center px-4 py-3 bg-purple-50 rounded-lg">
-                      <Calendar size={20} className="text-purple-600 mr-3" />
+                    {isEditing ? (
+                      // Edit Mode
                       <div>
-                        <p className="text-sm text-gray-500">Start Date</p>
-                        <p className="font-medium text-gray-800">
-                          {new Date(selectedPlan.startDate).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
-                        </p>
+                        <div className="mb-4">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                          <input
+                            type="text"
+                            value={editedPlan.title}
+                            onChange={(e) => handleEditField('title', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          />
+                        </div>
+                        
+                        <div className="mb-4">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                          <textarea
+                            value={editedPlan.description}
+                            onChange={(e) => handleEditField('description', e.target.value)}
+                            rows={3}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          />
+                        </div>
+                        
+                        <div className="mb-4">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                          <input
+                            type="date"
+                            value={new Date(editedPlan.startDate).toISOString().split('T')[0]}
+                            onChange={(e) => handleEditField('startDate', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          />
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      // View Mode
+                      <div>
+                        <h2 className="text-2xl font-bold text-gray-800 mb-2">{selectedPlan.title}</h2>
+                        <p className="text-gray-600">{selectedPlan.description}</p>
+                      </div>
+                    )}
+                    
+                    {isEditing ? (
+                      <div className="flex items-center px-4 py-3 bg-purple-50 rounded-lg">
+                        <Calendar size={20} className="text-purple-600 mr-3" />
+                        <div>
+                          <p className="text-sm text-gray-500">Start Date</p>
+                          <p className="font-medium text-gray-800">
+                            {new Date(editedPlan.startDate).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center px-4 py-3 bg-purple-50 rounded-lg">
+                        <Calendar size={20} className="text-purple-600 mr-3" />
+                        <div>
+                          <p className="text-sm text-gray-500">Start Date</p>
+                          <p className="font-medium text-gray-800">
+                            {new Date(selectedPlan.startDate).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    )}
 
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                        <BookOpen size={18} className="mr-2 text-purple-600" />
-                        Activities
-                      </h3>
+                      <div className="flex justify-between items-center mb-3">
+                        <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                          <BookOpen size={18} className="mr-2 text-purple-600" />
+                          Activities
+                        </h3>
+                        {isEditing && (
+                          <button
+                            onClick={addNewActivity}
+                            className="text-purple-600 hover:text-purple-800 flex items-center text-sm font-medium"
+                          >
+                            <PlusCircle size={16} className="mr-1" />
+                            Add Activity
+                          </button>
+                        )}
+                      </div>
                       
-                      {selectedPlan.activities?.length > 0 ? (
+                      {isEditing ? (
+                        // Edit Activities
                         <div className="space-y-4">
-                          {selectedPlan.activities.map((activity, index) => (
-                            <div key={index} className="bg-gray-50 rounded-lg border border-gray-100 overflow-hidden">
-                              <div className="px-4 py-3 bg-gray-100 border-b border-gray-200">
-                                <h4 className="font-medium text-gray-800">{activity.topic}</h4>
-                              </div>
-                              <div className="p-4">
-                                <p className="text-gray-600 text-sm mb-3">{activity.description}</p>
-                                
-                                {activity.resources?.length > 0 && (
+                          {editedPlan.activities && editedPlan.activities.length > 0 ? (
+                            editedPlan.activities.map((activity, index) => (
+                              <div key={index} className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+                                <div className="px-4 py-3 bg-gray-100 border-b border-gray-200 flex justify-between items-center">
+                                  <input
+                                    type="text"
+                                    value={activity.topic}
+                                    onChange={(e) => handleEditActivity(index, 'topic', e.target.value)}
+                                    className="font-medium text-gray-800 bg-transparent border-none focus:outline-none focus:ring-0 w-full"
+                                  />
+                                  <button
+                                    onClick={() => removeActivity(index)}
+                                    className="text-red-500 hover:text-red-700"
+                                  >
+                                    <Trash size={16} />
+                                  </button>
+                                </div>
+                                <div className="p-4 space-y-3">
                                   <div>
-                                    <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-2">Resources</p>
-                                    <ul className="space-y-2">
-                                      {activity.resources.map((res, i) => (
-                                        <li key={i} className="flex items-center">
-                                          <ExternalLink size={14} className="text-gray-400 mr-2 flex-shrink-0" />
-                                          <a
-                                            href={res.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-purple-600 hover:text-purple-800 text-sm truncate"
-                                          >
-                                            {res.title}
-                                          </a>
-                                        </li>
-                                      ))}
-                                    </ul>
+                                    <label className="block text-xs uppercase tracking-wider text-gray-500 font-semibold mb-1">Description</label>
+                                    <textarea
+                                      value={activity.description}
+                                      onChange={(e) => handleEditActivity(index, 'description', e.target.value)}
+                                      rows={2}
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                                    />
                                   </div>
-                                )}
+                                  
+                                  <div>
+                                    <div className="flex justify-between items-center mb-2">
+                                      <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold">Resources</p>
+                                      <button
+                                        onClick={() => addResourceToActivity(index)}
+                                        className="text-purple-600 hover:text-purple-800 flex items-center text-xs font-medium"
+                                      >
+                                        <Plus size={14} className="mr-1" />
+                                        Add Resource
+                                      </button>
+                                    </div>
+                                    
+                                    {activity.resources && activity.resources.length > 0 ? (
+                                      <ul className="space-y-2">
+                                        {activity.resources.map((res, i) => (
+                                          <li key={i} className="flex items-center justify-between bg-white p-2 rounded border border-gray-200">
+                                            <div className="flex-grow flex flex-col space-y-1">
+                                              <input
+                                                type="text"
+                                                value={res.title}
+                                                onChange={(e) => editResource(index, i, 'title', e.target.value)}
+                                                placeholder="Resource Title"
+                                                className="text-sm border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent w-full px-2 py-1"
+                                              />
+                                              <input
+                                                type="url"
+                                                value={res.url}
+                                                onChange={(e) => editResource(index, i, 'url', e.target.value)}
+                                                placeholder="https://example.com"
+                                                className="text-sm border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent w-full px-2 py-1"
+                                              />
+                                            </div>
+                                            <button
+                                              onClick={() => removeResource(index, i)}
+                                              className="text-red-500 hover:text-red-700 ml-2"
+                                            >
+                                              <Trash size={14} />
+                                            </button>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    ) : (
+                                      <p className="text-gray-400 text-xs italic">No resources added</p>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
+                            ))
+                          ) : (
+                            <div className="text-center py-6 bg-gray-50 rounded-lg">
+                              <p className="text-gray-500">No activities added yet</p>
+                              <button
+                                onClick={addNewActivity}
+                                className="mt-2 text-purple-600 text-sm font-medium hover:text-purple-800"
+                              >
+                                Add your first activity
+                              </button>
                             </div>
-                          ))}
+                          )}
                         </div>
                       ) : (
-                        <div className="text-center py-6 bg-gray-50 rounded-lg">
-                          <p className="text-gray-500">No activities added yet</p>
-                          <button
-                            onClick={() => handleEdit(selectedPlan.id)}
-                            className="mt-2 text-purple-600 text-sm font-medium hover:text-purple-800"
-                          >
-                            Add activities
-                          </button>
-                        </div>
+                        // View Activities
+                        <>
+                          {selectedPlan.activities?.length > 0 ? (
+                            <div className="space-y-4">
+                              {selectedPlan.activities.map((activity, index) => (
+                                <div key={index} className="bg-gray-50 rounded-lg border border-gray-100 overflow-hidden">
+                                  <div className="px-4 py-3 bg-gray-100 border-b border-gray-200">
+                                    <h4 className="font-medium text-gray-800">{activity.topic}</h4>
+                                  </div>
+                                  <div className="p-4">
+                                    <p className="text-gray-600 text-sm mb-3">{activity.description}</p>
+                                    
+                                    {activity.resources?.length > 0 && (
+                                      <div>
+                                        <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-2">Resources</p>
+                                        <ul className="space-y-2">
+                                          {activity.resources.map((res, i) => (
+                                            <li key={i} className="flex items-center">
+                                              <ExternalLink size={14} className="text-gray-400 mr-2 flex-shrink-0" />
+                                              <a
+                                                href={res.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-purple-600 hover:text-purple-800 text-sm truncate"
+                                              >
+                                                {res.title}
+                                              </a>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-center py-6 bg-gray-50 rounded-lg">
+                              <p className="text-gray-500">No activities added yet</p>
+                              <button
+                                onClick={startEditing}
+                                className="mt-2 text-purple-600 text-sm font-medium hover:text-purple-800"
+                              >
+                                Add activities
+                              </button>
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
