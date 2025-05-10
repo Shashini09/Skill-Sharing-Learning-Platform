@@ -162,7 +162,7 @@ const CreatePost = () => {
       setMediaFiles(updated);
     }
   };
-  // const handleFileClick = (index) => {
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -174,7 +174,7 @@ const CreatePost = () => {
         const formData = new FormData();
         formData.append('file', media.file);
 
-        const res = await axios.post('http://localhost:3001/api/posts/upload', formData, {
+        const res = await axios.post('http://localhost:8080/api/posts/upload', formData, {
           onUploadProgress: (progressEvent) => {
             const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
             setUploadProgress(percent);
@@ -188,7 +188,7 @@ const CreatePost = () => {
 
       const newPost = { ...post, mediaUrls, mediaTypes };
 
-      await axios.post('http://localhost:3001/api/posts/create', newPost, {
+      await axios.post('http://localhost:8080/api/posts/create', newPost, {
         withCredentials: true
       });
       // Reset form

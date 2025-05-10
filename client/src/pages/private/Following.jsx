@@ -18,7 +18,7 @@ export default function Following() {
         // Set loading to true while fetching
         setLoading(true);
         // Make a GET request to the /users/following endpoint
-        const response = await axios.get('http://localhost:3001/users/me/following', {
+        const response = await axios.get('http://localhost:8080/users/me/following', {
           // Include credentials for session-based authentication
           withCredentials: true,
           headers: {

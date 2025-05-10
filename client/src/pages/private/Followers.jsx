@@ -12,7 +12,7 @@ export default function Followers() {
   const fetchFollowers = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:3001/users/me/followers', {
+      const response = await axios.get('http://localhost:8080/users/me/followers', {
         withCredentials: true,
         headers: {
           'Content-Type': 'application/json',

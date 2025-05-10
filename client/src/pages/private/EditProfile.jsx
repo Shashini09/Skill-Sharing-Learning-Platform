@@ -49,7 +49,7 @@ export default function EditProfile() {
         picture: formData.picture, // Treated as a URL string
       };
 
-      await axios.put(`http://localhost:3001/users/${user.id}`, payload, {
+      await axios.put(`http://localhost:8080/users/${user.id}`, payload, {
         withCredentials: true,
         headers: {
           'Content-Type': 'application/json',

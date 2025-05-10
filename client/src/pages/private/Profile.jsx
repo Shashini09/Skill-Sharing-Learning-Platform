@@ -15,7 +15,7 @@ const Profile = () => {
     if (user && user.id) {
       const fetchUser = async () => {
         try {
-          const response = await axios.get(`http://localhost:3001/users/${user.id}`, {
+          const response = await axios.get(`http://localhost:8080/users/${user.id}`, {
             withCredentials: true,
           });
           setDbUser(response.data);
