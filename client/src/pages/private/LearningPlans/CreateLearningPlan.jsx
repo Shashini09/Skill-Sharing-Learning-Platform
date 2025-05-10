@@ -2,11 +2,21 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Trash2 } from 'lucide-react';
+import { 
+  Plus, 
+  Trash2, 
+  BookOpen, 
+  CalendarDays, 
+  FileText, 
+  Library, 
+  CheckCircle, 
+  X, 
+  Link as LinkIcon 
+} from 'lucide-react';
 
 export default function CreateLearningPlan() {
   const { user } = useAuth();
-  const navigate = useNavigate(); // <-- add this
+  const navigate = useNavigate();
 
   const [learningPlan, setLearningPlan] = useState({
     title: '',
@@ -17,18 +27,25 @@ export default function CreateLearningPlan() {
 
   const [activity, setActivity] = useState({ topic: '', description: '', resources: [] });
   const [resource, setResource] = useState({ title: '', url: '' });
-  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  
+  // Success modals state
+  const [showPlanSuccessModal, setShowPlanSuccessModal] = useState(false);
+  const [showActivitySuccessModal, setShowActivitySuccessModal] = useState(false);
 
   const handlePlanChange = (e) => {
     setLearningPlan({ ...learningPlan, [e.target.name]: e.target.value });
+    setError('');
   };
 
   const handleActivityChange = (e) => {
     setActivity({ ...activity, [e.target.name]: e.target.value });
+    setError('');
   };
 
   const handleResourceChange = (e) => {
     setResource({ ...resource, [e.target.name]: e.target.value });
+    setError('');
   };
 
   const addResource = () => {
@@ -38,7 +55,7 @@ export default function CreateLearningPlan() {
         resources: [...prev.resources, resource],
       }));
       setResource({ title: '', url: '' });
-      setMessage('');
+      setError('');
     }
   };
 
@@ -54,9 +71,18 @@ export default function CreateLearningPlan() {
         ...prev,
         activities: [...prev.activities, activity],
       }));
+      
+      // Show success message when activity is added
+      setShowActivitySuccessModal(true);
+      setTimeout(() => {
+        setShowActivitySuccessModal(false);
+      }, 1500);
+      
       setActivity({ topic: '', description: '', resources: [] });
       setResource({ title: '', url: '' });
-      setMessage('');
+      setError('');
+    } else {
+      setError('Please provide both topic and description for the activity');
     }
   };
 
@@ -68,9 +94,14 @@ export default function CreateLearningPlan() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!user?.id) return setMessage('You must be logged in to create a learning plan.');
-    if (!learningPlan.title || !learningPlan.description || !learningPlan.startDate)
-      return setMessage('Please fill in all learning plan details.');
+    if (!user?.id) {
+      setError('You must be logged in to create a learning plan.');
+      return;
+    }
+    if (!learningPlan.title || !learningPlan.description || !learningPlan.startDate) {
+      setError('Please fill in all learning plan details.');
+      return;
+    }
 
     try {
       const dataToSend = {
@@ -83,158 +114,297 @@ export default function CreateLearningPlan() {
         withCredentials: true,
       });
 
-      setMessage('🎉 Learning Plan created successfully!');
+      // Show success modal
+      setShowPlanSuccessModal(true);
+      
+      // Reset form
       setLearningPlan({ title: '', description: '', startDate: '', activities: [] });
       setActivity({ topic: '', description: '', resources: [] });
       setResource({ title: '', url: '' });
+      setError('');
 
+      // Redirect after showing success message
       setTimeout(() => {
-        navigate('/learning-plans'); // <-- navigate after short delay
-      }, 1000);
+        setShowPlanSuccessModal(false);
+        navigate('/learning-plans');
+      }, 2000);
     } catch (error) {
-      setMessage('Error creating learning plan: ' + error.message);
+      setError('Error creating learning plan: ' + error.message);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-200 py-10 px-5">
-      <div className="max-w-3xl mx-auto bg-white p-8 rounded-3xl shadow-xl border border-gray-200">
-        <h1 className="text-4xl font-bold text-gray-800 mb-8 text-center">Learning Plan</h1>
-
-        <div className="grid gap-4 mb-8">
-          <input
-            type="text"
-            name="title"
-            value={learningPlan.title}
-            onChange={handlePlanChange}
-            placeholder="Learning Plan Title"
-            className="p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-          <textarea
-            name="description"
-            value={learningPlan.description}
-            onChange={handlePlanChange}
-            placeholder="Short Description"
-            className="p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-          <input
-            type="date"
-            name="startDate"
-            value={learningPlan.startDate}
-            onChange={handlePlanChange}
-            className="p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-12 px-5">
+      <div className="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
+        <div className="flex items-center justify-center mb-8">
+          <BookOpen className="text-indigo-600 mr-3" size={28} />
+          <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-500">
+            Create Learning Plan
+          </h1>
         </div>
 
-        {learningPlan.activities.map((act, index) => (
-          <div key={index} className="bg-gray-100 p-5 mb-5 rounded-xl shadow-sm border relative">
-            <button
-              onClick={() => removeActivity(index)}
-              className="absolute top-3 right-3 text-red-500 hover:text-red-600"
-              title="Remove Activity"
-            >
-              <Trash2 size={20} />
-            </button>
-            <h3 className="font-bold text-gray-700 mb-2">Activity {index + 1}</h3>
-            <p className="mb-1"><strong>Topic:</strong> {act.topic}</p>
-            <p className="mb-2"><strong>Description:</strong> {act.description}</p>
-            {act.resources.length > 0 && (
-              <ul className="list-disc pl-5 text-sm text-blue-700">
-                {act.resources.map((res, idx) => (
-                  <li key={idx}>
-                    <strong>{res.title}</strong>:&nbsp;
-                    <a href={res.url} target="_blank" rel="noreferrer" className="hover:underline">
-                      {res.url}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            )}
+        {/* Main Form */}
+        <div className="space-y-6 mb-8">
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <FileText className="text-indigo-500" size={18} />
+            </div>
+            <input
+              type="text"
+              name="title"
+              value={learningPlan.title}
+              onChange={handlePlanChange}
+              placeholder="Enter your learning plan title..."
+              className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+            />
           </div>
-        ))}
+          
+          <div className="relative group">
+            <div className="absolute top-3 left-3 flex items-start pointer-events-none">
+              <Library className="text-indigo-500" size={18} />
+            </div>
+            <textarea
+              name="description"
+              value={learningPlan.description}
+              onChange={handlePlanChange}
+              placeholder="Describe what you want to learn and achieve with this plan..."
+              rows="4"
+              className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+            />
+          </div>
+          
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <CalendarDays className="text-indigo-500" size={18} />
+            </div>
+            <input
+              type="date"
+              name="startDate"
+              value={learningPlan.startDate}
+              onChange={handlePlanChange}
+              className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+            />
+          </div>
+        </div>
 
-        <div className="bg-white p-6 rounded-xl mb-8 border border-gray-300">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">New Activity</h2>
-
-          <input
-            type="text"
-            name="topic"
-            value={activity.topic}
-            onChange={handleActivityChange}
-            placeholder="Activity Topic"
-            className="w-full p-2 mb-2 border rounded"
-          />
-          <textarea
-            name="description"
-            value={activity.description}
-            onChange={handleActivityChange}
-            placeholder="Activity Description"
-            className="w-full p-2 mb-4 border rounded"
-          />
-
-          <div>
-            <h3 className="text-gray-700 font-medium mb-2">Resources</h3>
-            {activity.resources.map((res, index) => (
-              <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded border mb-2">
-                <div>
-                  <strong>{res.title}</strong>:&nbsp;
-                  <a href={res.url} className="text-blue-600 hover:underline" target="_blank" rel="noreferrer">
-                    {res.url}
-                  </a>
+        {/* Activities List */}
+        {learningPlan.activities.length > 0 && (
+          <div className="mb-10">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+              <BookOpen className="mr-2 text-indigo-500" size={18} />
+              Your Learning Activities
+            </h2>
+            
+            <div className="grid gap-4 md:grid-cols-2">
+              {learningPlan.activities.map((act, index) => (
+                <div 
+                  key={index} 
+                  className="bg-gradient-to-br from-white to-indigo-50 p-5 rounded-xl shadow-sm border border-indigo-100 relative hover:shadow-md transition-all duration-200"
+                >
+                  <button
+                    onClick={() => removeActivity(index)}
+                    className="absolute top-3 right-3 text-red-400 hover:text-red-600 bg-white rounded-full p-1 shadow-sm hover:shadow transition-all"
+                    title="Remove Activity"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                  <h3 className="font-bold text-indigo-700 mb-2">{act.topic}</h3>
+                  <p className="mb-3 text-gray-600 text-sm">{act.description}</p>
+                  {act.resources.length > 0 && (
+                    <div className="mt-3 bg-white p-3 rounded-lg border border-indigo-50">
+                      <h4 className="text-xs uppercase tracking-wider text-gray-500 mb-2 flex items-center">
+                        <LinkIcon size={12} className="mr-1" /> Resources
+                      </h4>
+                      <ul className="space-y-2">
+                        {act.resources.map((res, idx) => (
+                          <li key={idx} className="text-sm flex items-center">
+                            <div className="h-2 w-2 rounded-full bg-blue-400 mr-2"></div>
+                            <a 
+                              href={res.url} 
+                              target="_blank" 
+                              rel="noreferrer" 
+                              className="text-blue-600 hover:text-blue-800 hover:underline truncate"
+                              title={res.url}
+                            >
+                              {res.title}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
-                <button onClick={() => removeResource(index)} className="text-red-500 hover:text-red-600">
-                  <Trash2 size={16} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* New Activity Form */}
+        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-6 rounded-xl mb-8 border border-indigo-100 shadow-sm">
+          <h2 className="text-xl font-semibold text-indigo-700 mb-5 flex items-center">
+            <Plus className="mr-2" size={18} />
+            Add New Activity
+          </h2>
+
+          <div className="space-y-4">
+            <input
+              type="text"
+              name="topic"
+              value={activity.topic}
+              onChange={handleActivityChange}
+              placeholder="What topic will you learn?"
+              className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+            />
+            <textarea
+              name="description"
+              value={activity.description}
+              onChange={handleActivityChange}
+              placeholder="Describe what you'll learn in this activity..."
+              className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              rows="3"
+            />
+
+            <div className="bg-white p-4 rounded-lg border border-gray-200">
+              <h3 className="text-gray-700 font-medium mb-3 flex items-center">
+                <Library className="mr-2 text-indigo-500" size={16} />
+                Learning Resources
+              </h3>
+              
+              {activity.resources.length > 0 && (
+                <div className="mb-4 space-y-2">
+                  {activity.resources.map((res, index) => (
+                    <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg border hover:bg-blue-50 transition-colors">
+                      <div className="flex items-center overflow-hidden">
+                        <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                          <LinkIcon size={14} className="text-blue-600" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-sm text-gray-800 truncate">{res.title}</p>
+                          <a 
+                            href={res.url} 
+                            className="text-xs text-blue-600 hover:underline truncate block" 
+                            target="_blank" 
+                            rel="noreferrer"
+                          >
+                            {res.url}
+                          </a>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => removeResource(index)} 
+                        className="ml-2 flex-shrink-0 text-red-400 hover:text-red-600 bg-white rounded-full p-1 shadow-sm hover:shadow transition-all"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input
+                  type="text"
+                  name="title"
+                  value={resource.title}
+                  onChange={handleResourceChange}
+                  placeholder="Resource Name"
+                  className="flex-1 p-2 border rounded-lg"
+                />
+                <input
+                  type="text"
+                  name="url"
+                  value={resource.url}
+                  onChange={handleResourceChange}
+                  placeholder="https://..."
+                  className="flex-1 p-2 border rounded-lg"
+                />
+                <button
+                  onClick={addResource}
+                  disabled={!resource.title || !resource.url}
+                  className="bg-indigo-500 text-white px-3 py-2 rounded-lg hover:bg-indigo-600 disabled:bg-indigo-300 transition-colors flex items-center justify-center whitespace-nowrap"
+                >
+                  <Plus size={16} className="mr-1" />
+                  
                 </button>
               </div>
-            ))}
-
-            <div className="flex gap-2 mt-3">
-              <input
-                type="text"
-                name="title"
-                value={resource.title}
-                onChange={handleResourceChange}
-                placeholder="Resource Title"
-                className="flex-1 p-2 border rounded"
-              />
-              <input
-                type="text"
-                name="url"
-                value={resource.url}
-                onChange={handleResourceChange}
-                placeholder="Resource URL"
-                className="flex-1 p-2 border rounded"
-              />
-              <button
-                onClick={addResource}
-                disabled={!resource.title || !resource.url}
-                className="bg-blue-600 text-white px-3 rounded hover:bg-blue-700 disabled:bg-blue-300"
-              >
-                <Plus size={18} />
-              </button>
             </div>
           </div>
 
           <button
             onClick={addActivity}
             disabled={!activity.topic || !activity.description}
-            className="mt-5 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded disabled:bg-blue-300"
+            className="mt-6 bg-indigo-500 hover:bg-indigo-600 text-white px-5 py-2 rounded-lg disabled:bg-indigo-300 transition-all duration-200 flex items-center justify-center"
           >
-            Add Activity
+            <Plus size={16} className="mr-1" />
+            Add Activity 
           </button>
         </div>
 
+        {/* Submit Button */}
         <button
           onClick={handleSubmit}
-          className="w-full bg-blue-900 hover:bg-blue-950 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200"
+          className="w-full bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-700 hover:to-blue-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg"
         >
           Create Learning Plan
         </button>
 
-        {message && (
-          <p className="mt-6 text-center text-sm font-medium text-red-500">{message}</p>
+        {/* Error Message */}
+        {error && (
+          <div className="mt-6 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-center">
+            {error}
+          </div>
         )}
       </div>
+
+      {/* Success Modal for Learning Plan Creation */}
+      {showPlanSuccessModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-40">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full transform animate-popup">
+            <div className="text-center">
+              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="h-10 w-10 text-green-500" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">Success!</h3>
+              
+             
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Success Toast for Activity Addition */}
+      {showActivitySuccessModal && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <div className="bg-white rounded-lg shadow-lg border border-green-100 p-4 flex items-center space-x-3 animate-slideIn">
+            <div className="bg-green-100 p-2 rounded-full">
+              <CheckCircle className="h-5 w-5 text-green-500" />
+            </div>
+            <p className="text-gray-700">Activity added successfully!</p>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Animations */}
+      <style jsx>{`
+        @keyframes popup {
+          0% { opacity: 0; transform: scale(0.9); }
+          70% { opacity: 1; transform: scale(1.05); }
+          100% { opacity: 1; transform: scale(1); }
+        }
+        
+        @keyframes slideIn {
+          0% { opacity: 0; transform: translateX(30px); }
+          100% { opacity: 1; transform: translateX(0); }
+        }
+        
+        .animate-popup {
+          animation: popup 0.4s ease-out forwards;
+        }
+        
+        .animate-slideIn {
+          animation: slideIn 0.3s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 }

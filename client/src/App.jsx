@@ -59,9 +59,13 @@ function App() {
             <Route path="/followers" element={<Followers />} />
             <Route path="/frendsprofile/:id" element={<FriendsProfile/>} />
             <Route path="/feed" element={<Feed />} />
+
+
             <Route path="/learning-plans" element={<LearningPlanList />} />
             <Route path="/create-learning-plans" element={<CreateLearningPlan />} />
-            <Route path="/edit-learning-plan/:id" component={<EditLearningPlan />} />
+            <Route path="/edit-learning-plan/:id" element={<EditLearningPlan />} />
+
+
 
             <Route path="/createpost" element={<CreatePost />} />
             <Route path="/editpost" element={<EditPost/>} />
