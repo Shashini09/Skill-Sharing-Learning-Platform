@@ -190,6 +190,7 @@ const CreatePost = () => {
       await axios.post('http://localhost:3001/api/posts/create', newPost, {
         withCredentials: true
       });
+      // Reset form
 
       toast.success('Post created successfully!');
       setTimeout(() => navigate('/postfeed'), 1500);
