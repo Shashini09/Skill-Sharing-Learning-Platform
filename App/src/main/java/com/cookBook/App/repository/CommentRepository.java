@@ -10,4 +10,6 @@ import java.util.Optional;
 public interface CommentRepository extends MongoRepository<Comment, String> {
 
     List<Comment> findByPostId(String PostId);
+
+    List<Comment> findByPostIdIn(List<String> postIds);
 }

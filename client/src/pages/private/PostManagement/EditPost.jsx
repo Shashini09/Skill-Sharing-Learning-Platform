@@ -1,30 +1,32 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../../../context/AuthContext";
-import { storage } from '../../../firebase/firebase'; // Adjust the import path based on your file structure
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import axios from 'axios';
+import { storage } from "../../../firebase/firebase"; // Adjust the import path based on your file structure
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import axios from "axios";
 
 const EditPost = () => {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
   const [isListening, setIsListening] = useState(false);
-  const [language, setLanguage] = useState('en-US');
+  const [language, setLanguage] = useState("en-US");
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
 
   const [post, setPost] = useState({
-    userId: '',
-    topic: '',
-    description: '',
+    userId: "",
+    topic: "",
+    description: "",
+
     mediaUrls: [],
     mediaTypes: [],
     isPrivate: false,
     taggedFriends: [],
-    location: '',
-    timestamp: ''
+    location: "",
+    timestamp: "",
   });
 
   const [mediaFiles, setMediaFiles] = useState([]);
@@ -33,8 +35,10 @@ const EditPost = () => {
   // Fetch post data and initialize form
   useEffect(() => {
     if (!user?.id) {
-      toast.error('User not logged in. Please log in to edit a post.', { position: "top-center" });
-      setTimeout(() => navigate('/login'), 2000);
+      toast.error("User not logged in. Please log in to edit a post.", {
+        position: "top-center",
+      });
+      setTimeout(() => navigate("/login"), 2000);
       return;
     }
 
@@ -46,8 +50,10 @@ const EditPost = () => {
         const fetchedPost = {
           ...res.data,
           userId: res.data.userId || user.id,
-          taggedFriends: Array.isArray(res.data.taggedFriends) ? res.data.taggedFriends : [],
-          timestamp: res.data.timestamp || new Date().toISOString()
+          taggedFriends: Array.isArray(res.data.taggedFriends)
+            ? res.data.taggedFriends
+            : [],
+          timestamp: res.data.timestamp || new Date().toISOString(),
         };
         setPost(fetchedPost);
         setMediaFiles(
@@ -55,11 +61,13 @@ const EditPost = () => {
             file: null,
             url,
             existing: true,
-            type: res.data.mediaTypes[i] || (url.includes('.mp4') ? 'video' : 'image')
+            type:
+              res.data.mediaTypes[i] ||
+              (url.includes(".mp4") ? "video" : "image"),
           }))
         );
       } catch (err) {
-        toast.error('Failed to load post.', { position: "top-center" });
+        toast.error("Failed to load post.", { position: "top-center" });
       }
     };
     fetchPost();
@@ -67,12 +75,16 @@ const EditPost = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setPost({ ...post, [name]: type === 'checkbox' ? checked : value });
+    setPost({ ...post, [name]: type === "checkbox" ? checked : value });
   };
 
   const startListening = () => {
-    if (!SpeechRecognition) return toast.error('Speech recognition not supported.', { position: "top-center" });
-    if (isListening) return toast.info('Already listening...', { position: "top-center" });
+    if (!SpeechRecognition)
+      return toast.error("Speech recognition not supported.", {
+        position: "top-center",
+      });
+    if (isListening)
+      return toast.info("Already listening...", { position: "top-center" });
 
     const recognition = new SpeechRecognition();
     window.SpeechRecognitionInstance = recognition;
@@ -85,7 +97,7 @@ const EditPost = () => {
     recognition.onresult = (event) => {
       const transcript = Array.from(event.results)
         .map((r) => r[0].transcript)
-        .join('');
+        .join("");
       setPost((prev) => ({ ...prev, description: transcript }));
     };
     recognition.onerror = (event) => {
@@ -103,7 +115,10 @@ const EditPost = () => {
   };
 
   const detectLocation = () => {
-    if (!navigator.geolocation) return toast.error('Geolocation not supported.', { position: "top-center" });
+    if (!navigator.geolocation)
+      return toast.error("Geolocation not supported.", {
+        position: "top-center",
+      });
     navigator.geolocation.getCurrentPosition(
       async ({ coords: { latitude, longitude } }) => {
         try {
@@ -116,14 +131,15 @@ const EditPost = () => {
             location: data.display_name || `${latitude}, ${longitude}`,
           }));
         } catch {
-          toast.error('Could not fetch location.', { position: "top-center" });
+          toast.error("Could not fetch location.", { position: "top-center" });
         }
       },
-      () => toast.error('Location access denied.', { position: "top-center" })
+      () => toast.error("Location access denied.", { position: "top-center" })
     );
   };
 
-  const handleFileSelect = (e) => handleFileValidation(Array.from(e.target.files));
+  const handleFileSelect = (e) =>
+    handleFileValidation(Array.from(e.target.files));
   const handleFileDrop = (e) => {
     e.preventDefault();
     handleFileValidation(Array.from(e.dataTransfer.files));
@@ -131,29 +147,44 @@ const EditPost = () => {
   const handleDragOver = (e) => e.preventDefault();
 
   const handleFileValidation = (selectedFiles) => {
-    const allowedTypes = ['image/png', 'image/jpeg', 'video/mp4'];
+    const allowedTypes = ["image/png", "image/jpeg", "video/mp4"];
     const requiredImages = 3;
     const maxVideos = 1;
-    const currentImages = mediaFiles.filter(f => f.type.startsWith('image')).length;
-    const currentVideos = mediaFiles.filter(f => f.type === 'video').length;
+    const currentImages = mediaFiles.filter((f) =>
+      f.type.startsWith("image")
+    ).length;
+    const currentVideos = mediaFiles.filter((f) => f.type === "video").length;
 
     const newFiles = [];
     for (let file of selectedFiles) {
       if (!allowedTypes.includes(file.type)) {
-        toast.error(`Invalid file type: ${file.name}. Only PNG, JPEG, and MP4 allowed.`, { position: "top-center" });
+        toast.error(
+          `Invalid file type: ${file.name}. Only PNG, JPEG, and MP4 allowed.`,
+          { position: "top-center" }
+        );
         continue;
       }
 
-      if (file.type.startsWith('image')) {
-        if (currentImages + newFiles.filter(f => f.type?.startsWith('image')).length >= requiredImages) {
-          toast.error(`Exactly ${requiredImages} images are required.`, { position: "top-center" });
+      if (file.type.startsWith("image")) {
+        if (
+          currentImages +
+            newFiles.filter((f) => f.type?.startsWith("image")).length >=
+          requiredImages
+        ) {
+          toast.error(`Exactly ${requiredImages} images are required.`, {
+            position: "top-center",
+          });
           continue;
         }
       }
 
-      if (file.type === 'video/mp4') {
-        if (currentVideos + newFiles.filter(f => f.type === 'video/mp4').length >= maxVideos) {
-          toast.error('Only one video is allowed.', { position: "top-center" });
+      if (file.type === "video/mp4") {
+        if (
+          currentVideos +
+            newFiles.filter((f) => f.type === "video/mp4").length >=
+          maxVideos
+        ) {
+          toast.error("Only one video is allowed.", { position: "top-center" });
           continue;
         }
       }
@@ -162,15 +193,19 @@ const EditPost = () => {
         file,
         url: URL.createObjectURL(file),
         existing: false,
-        type: file.type.startsWith('video') ? 'video' : 'image'
+        type: file.type.startsWith("video") ? "video" : "image",
       };
 
-      if (file.type === 'video/mp4') {
-        const video = document.createElement('video');
-        video.preload = 'metadata';
+      if (file.type === "video/mp4") {
+        const video = document.createElement("video");
+        video.preload = "metadata";
+
         video.onloadedmetadata = () => {
           if (video.duration > 30) {
-            toast.error(`Video too long: ${file.name}. Maximum 30 seconds allowed.`, { position: "top-center" });
+            toast.error(
+              `Video too long: ${file.name}. Maximum 30 seconds allowed.`,
+              { position: "top-center" }
+            );
           } else {
             newFiles.push(newFile);
             setMediaFiles((prev) => [...prev, ...newFiles]);
@@ -182,7 +217,10 @@ const EditPost = () => {
       }
     }
 
-    if (newFiles.length > 0 && !selectedFiles.some(f => f.type === 'video/mp4')) {
+    if (
+      newFiles.length > 0 &&
+      !selectedFiles.some((f) => f.type === "video/mp4")
+    ) {
       setMediaFiles((prev) => [...prev, ...newFiles]);
     }
   };
@@ -194,7 +232,10 @@ const EditPost = () => {
     const newFiles = [...mediaFiles];
     const newIndex = index + direction;
     if (newIndex >= 0 && newIndex < newFiles.length) {
-      [newFiles[index], newFiles[newIndex]] = [newFiles[newIndex], newFiles[index]];
+      [newFiles[index], newFiles[newIndex]] = [
+        newFiles[newIndex],
+        newFiles[index],
+      ];
       setMediaFiles(newFiles);
     }
   };
@@ -203,15 +244,17 @@ const EditPost = () => {
     e.preventDefault();
 
     // Validate exactly 3 images
-    const imageCount = mediaFiles.filter(f => f.type.startsWith('image')).length;
+    const imageCount = mediaFiles.filter((f) =>
+      f.type.startsWith("image")
+    ).length;
     // if (imageCount !== 3) {
     //   toast.error(`Exactly 3 images are required. Currently ${imageCount} selected.`, { position: "top-center" });
     //   return;
     // }
 
     try {
-      const existingMedia = mediaFiles.filter(f => f.existing);
-      const newMedia = mediaFiles.filter(f => !f.existing);
+      const existingMedia = mediaFiles.filter((f) => f.existing);
+      const newMedia = mediaFiles.filter((f) => !f.existing);
 
       const mediaUrls = [];
       const mediaTypes = [];
@@ -219,47 +262,68 @@ const EditPost = () => {
 
       for (let media of newMedia) {
         const file = media.file;
-        const storageRef = ref(storage, `posts/${post.userId}/${Date.now()}_${file.name}`);
+        const storageRef = ref(
+          storage,
+          `posts/${post.userId}/${Date.now()}_${file.name}`
+        );
         const uploadTask = uploadBytesResumable(storageRef, file);
 
         await new Promise((resolve, reject) => {
           uploadTask.on(
-            'state_changed',
+            "state_changed",
             (snapshot) => {
-              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-              totalProgress = Math.min(100, totalProgress + progress / newMedia.length);
+              const progress =
+                (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+              totalProgress = Math.min(
+                100,
+                totalProgress + progress / newMedia.length
+              );
               setUploadProgress(Math.round(totalProgress));
             },
             (error) => {
-              toast.error(`Upload failed: ${error.message}`, { position: "top-center" });
+              toast.error(`Upload failed: ${error.message}`, {
+                position: "top-center",
+              });
               reject(error);
             },
             async () => {
               const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
               mediaUrls.push(downloadURL);
-              mediaTypes.push(file.type.startsWith('video') ? 'video' : 'image');
+              mediaTypes.push(
+                file.type.startsWith("video") ? "video" : "image"
+              );
               resolve();
             }
           );
         });
       }
 
-      mediaUrls.push(...existingMedia.map(m => m.url));
-      mediaTypes.push(...existingMedia.map(m => m.type));
+      mediaUrls.push(...existingMedia.map((m) => m.url));
+      mediaTypes.push(...existingMedia.map((m) => m.type));
 
       const updatedPost = {
         ...post,
         mediaUrls,
         mediaTypes,
-        taggedFriends: Array.isArray(post.taggedFriends) ? post.taggedFriends : post.taggedFriends.split(',').map(tag => tag.trim()).filter(Boolean)
+
+        taggedFriends: Array.isArray(post.taggedFriends)
+          ? post.taggedFriends
+          : post.taggedFriends
+              .split(",")
+              .map((tag) => tag.trim())
+              .filter(Boolean),
       };
 
-      await axios.put(`http://localhost:8080/api/posts/update/${id}`, updatedPost, {
-        withCredentials: true
-      });
+      await axios.put(
+        `http://localhost:8080/api/posts/update/${id}`,
+        updatedPost,
+        {
+          withCredentials: true,
+        }
+      );
 
       toast.success("Post updated successfully!", { position: "top-center" });
-      setTimeout(() => navigate('/postfeed'), 1500);
+      setTimeout(() => navigate("/postfeed"), 1500);
     } catch (err) {
       console.error(err);
       toast.error("Failed to update post.", { position: "top-center" });
@@ -271,7 +335,9 @@ const EditPost = () => {
       <h2 className="text-3xl font-bold mb-6 text-gray-800">Edit Post</h2>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block font-semibold mb-1 text-gray-700">Topic</label>
+          <label className="block font-semibold mb-1 text-gray-700">
+            Topic
+          </label>
           <textarea
             name="topic"
             value={post.topic}
@@ -282,7 +348,9 @@ const EditPost = () => {
         </div>
 
         <div className="relative">
-          <label className="block font-semibold mb-1 text-gray-700">Description</label>
+          <label className="block font-semibold mb-1 text-gray-700">
+            Description
+          </label>
           <textarea
             name="description"
             value={post.description}
@@ -297,8 +365,8 @@ const EditPost = () => {
               disabled={isListening}
               className={`text-sm px-3 py-1 rounded-lg transition ${
                 isListening
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-blue-100 hover:bg-blue-200 text-blue-700'
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-blue-100 hover:bg-blue-200 text-blue-700"
               }`}
             >
               🎤 Speak
@@ -309,8 +377,8 @@ const EditPost = () => {
               disabled={!isListening}
               className={`text-sm px-3 py-1 rounded-lg transition ${
                 !isListening
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-red-100 hover:bg-red-200 text-red-700'
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-red-100 hover:bg-red-200 text-red-700"
               }`}
             >
               🛑 Stop
@@ -363,46 +431,48 @@ const EditPost = () => {
         {mediaFiles.length > 0 && (
           <div className="grid grid-cols-2 gap-3 mt-4">
             {mediaFiles.map((p, i) => (
-              <div key={i} className="relative border p-2 rounded-lg group">
-                <button
-                  type="button"
-                  onClick={() => handleRemoveFile(i)}
-                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                  title="Remove"
-                >
-                  ❌
-                </button>
-                {i > 0 && (
+              <div key={i}>
+                <div className="relative border p-2 rounded-lg group">
                   <button
                     type="button"
-                    onClick={() => moveFile(i, -1)}
-                    className="absolute left-2 top-2 bg-blue-500 text-white p-1 text-xs rounded"
+                    onClick={() => handleRemoveFile(i)}
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Remove"
                   >
-                    ⬆️
+                    ❌
                   </button>
-                )}
-                {i < mediaFiles.length - 1 && (
-                  <button
-                    type="button"
-                    onClick={() => moveFile(i, 1)}
-                    className="absolute left-2 bottom-2 bg-blue-500 text-white p-1 text-xs rounded"
-                  >
-                    ⬇️
-                  </button>
-                )}
-                {p.type === 'video' ? (
-                  <video
-                    src={p.url}
-                    controls
-                    className="w-full max-h-40 object-cover rounded"
-                  />
-                ) : (
-                  <img
-                    src={p.url}
-                    alt="Preview"
-                    className="w-full max-h-40 object-cover rounded"
-                  />
-                )}
+                  {i > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => moveFile(i, -1)}
+                      className="absolute left-2 top-2 bg-blue-500 text-white p-1 text-xs rounded"
+                    >
+                      ⬆️
+                    </button>
+                  )}
+                  {i < mediaFiles.length - 1 && (
+                    <button
+                      type="button"
+                      onClick={() => moveFile(i, 1)}
+                      className="absolute left-2 bottom-2 bg-blue-500 text-white p-1 text-xs rounded"
+                    >
+                      ⬇️
+                    </button>
+                  )}
+                  {p.type === "video" ? (
+                    <video
+                      src={p.url}
+                      controls
+                      className="w-full max-h-40 object-cover rounded"
+                    />
+                  ) : (
+                    <img
+                      src={p.url}
+                      alt="Preview"
+                      className="w-full max-h-40 object-cover rounded"
+                    />
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -432,9 +502,15 @@ const EditPost = () => {
           type="text"
           name="taggedFriends"
           placeholder="Tagged friends (comma separated)"
-          value={post.taggedFriends.join(', ')}
+          value={post.taggedFriends.join(", ")}
           onChange={(e) =>
-            setPost({ ...post, taggedFriends: e.target.value.split(',').map(tag => tag.trim()).filter(Boolean) })
+            setPost({
+              ...post,
+              taggedFriends: e.target.value
+                .split(",")
+                .map((tag) => tag.trim())
+                .filter(Boolean),
+            })
           }
           className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
