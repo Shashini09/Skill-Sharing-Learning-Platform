@@ -1,21 +1,21 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024;
 const MAX_FILES = 5;
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'video/mp4'];
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "video/mp4"];
 
 const EditPost = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [post, setPost] = useState({
-    userId: '',
-    content: '',
-    description: '',
+    userId: "",
+    content: "",
+    description: "",
     mediaUrls: [],
     mediaTypes: [],
     isPrivate: false,
@@ -39,7 +39,7 @@ const EditPost = () => {
           }))
         );
       } catch (err) {
-        toast.error('Failed to load post.');
+        toast.error("Failed to load post.");
       }
     };
     fetchPost();
@@ -47,7 +47,7 @@ const EditPost = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setPost({ ...post, [name]: type === 'checkbox' ? checked : value });
+    setPost({ ...post, [name]: type === "checkbox" ? checked : value });
   };
 
   const handleFileSelect = (e) => {
@@ -78,12 +78,12 @@ const EditPost = () => {
         file,
         url: URL.createObjectURL(file),
         existing: false,
-        type: file.type.startsWith('video') ? 'video' : 'image'
+        type: file.type.startsWith("video") ? "video" : "image",
       };
 
-      if (file.type.startsWith('video')) {
-        const video = document.createElement('video');
-        video.preload = 'metadata';
+      if (file.type.startsWith("video")) {
+        const video = document.createElement("video");
+        video.preload = "metadata";
         video.onloadedmetadata = () => {
           if (video.duration < 30) {
             toast.error(`Video too short (<30s): ${file.name}`);
@@ -110,7 +110,10 @@ const EditPost = () => {
     const newFiles = [...mediaFiles];
     const newIndex = index + direction;
     if (newIndex >= 0 && newIndex < newFiles.length) {
-      [newFiles[index], newFiles[newIndex]] = [newFiles[newIndex], newFiles[index]];
+      [newFiles[index], newFiles[newIndex]] = [
+        newFiles[newIndex],
+        newFiles[index],
+      ];
       setMediaFiles(newFiles);
     }
   };
@@ -119,32 +122,37 @@ const EditPost = () => {
     e.preventDefault();
 
     try {
-      const existingMedia = mediaFiles.filter(f => f.existing);
-      const newMedia = mediaFiles.filter(f => !f.existing);
+      const existingMedia = mediaFiles.filter((f) => f.existing);
+      const newMedia = mediaFiles.filter((f) => !f.existing);
 
       const mediaUrls = [];
       const mediaTypes = [];
 
       for (let i = 0; i < newMedia.length; i++) {
         const formData = new FormData();
-        formData.append('file', newMedia[i].file);
+        formData.append("file", newMedia[i].file);
 
-        const res = await axios.post("http://localhost:8080/api/posts/upload", formData);
+        const res = await axios.post(
+          "http://localhost:8080/api/posts/upload",
+          formData
+        );
         mediaUrls.push(res.data);
-        mediaTypes.push(newMedia[i].file.type.startsWith('video') ? 'video' : 'image');
+        mediaTypes.push(
+          newMedia[i].file.type.startsWith("video") ? "video" : "image"
+        );
       }
 
-      mediaUrls.push(...existingMedia.map(m => m.url));
-      mediaTypes.push(...existingMedia.map(m => m.type));
+      mediaUrls.push(...existingMedia.map((m) => m.url));
+      mediaTypes.push(...existingMedia.map((m) => m.type));
 
       await axios.put(`http://localhost:8080/api/posts/update/${id}`, {
         ...post,
         mediaUrls,
-        mediaTypes
+        mediaTypes,
       });
 
       toast.success("Post updated successfully!");
-      setTimeout(() => navigate('/'), 1500);
+      setTimeout(() => navigate("/"), 1500);
     } catch (err) {
       console.error(err);
       toast.error("Failed to update post.");
@@ -156,26 +164,77 @@ const EditPost = () => {
       <h2 className="text-2xl font-bold mb-4">Edit Post</h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <input type="text" name="userId" value={post.userId} onChange={handleInputChange} className="w-full p-2 border rounded" />
-        <textarea name="content" value={post.content} onChange={handleInputChange} className="w-full p-2 border rounded" />
-        <textarea name="description" value={post.description} onChange={handleInputChange} className="w-full p-2 border rounded" />
+        <input
+          type="text"
+          name="userId"
+          value={post.userId}
+          onChange={handleInputChange}
+          className="w-full p-2 border rounded"
+        />
+        <textarea
+          name="content"
+          value={post.content}
+          onChange={handleInputChange}
+          className="w-full p-2 border rounded"
+        />
+        <textarea
+          name="description"
+          value={post.description}
+          onChange={handleInputChange}
+          className="w-full p-2 border rounded"
+        />
 
-        <input type="file" multiple accept=".jpg,.jpeg,.png,.mp4" onChange={handleFileSelect} className="w-full mt-2" />
+        <input
+          type="file"
+          multiple
+          accept=".jpg,.jpeg,.png,.mp4"
+          onChange={handleFileSelect}
+          className="w-full mt-2"
+        />
 
         {mediaFiles.length > 0 && (
           <div className="grid grid-cols-2 gap-2 mt-4">
             {mediaFiles.map((p, i) => (
               <div key={i} className="relative border p-1 rounded group">
-                <button type="button" onClick={() => handleRemoveFile(i)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs opacity-0 group-hover:opacity-100 transition-opacity" title="Remove">
+                <button
+                  type="button"
+                  onClick={() => handleRemoveFile(i)}
+                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                  title="Remove"
+                >
                   ❌
                 </button>
-                {i > 0 && <button type="button" onClick={() => moveFile(i, -1)} className="absolute left-1 top-1 bg-blue-500 text-white p-1 text-xs rounded">⬆️</button>}
-                {i < mediaFiles.length - 1 && <button type="button" onClick={() => moveFile(i, 1)} className="absolute left-1 bottom-1 bg-blue-500 text-white p-1 text-xs rounded">⬇️</button>}
+                {i > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => moveFile(i, -1)}
+                    className="absolute left-1 top-1 bg-blue-500 text-white p-1 text-xs rounded"
+                  >
+                    ⬆️
+                  </button>
+                )}
+                {i < mediaFiles.length - 1 && (
+                  <button
+                    type="button"
+                    onClick={() => moveFile(i, 1)}
+                    className="absolute left-1 bottom-1 bg-blue-500 text-white p-1 text-xs rounded"
+                  >
+                    ⬇️
+                  </button>
+                )}
 
-                {p.type === 'video' ? (
-                  <video src={p.url} controls className="w-full max-h-40 object-cover rounded" />
+                {p.type === "video" ? (
+                  <video
+                    src={p.url}
+                    controls
+                    className="w-full max-h-40 object-cover rounded"
+                  />
                 ) : (
-                  <img src={p.url} alt="Preview" className="w-full max-h-40 object-cover rounded" />
+                  <img
+                    src={p.url}
+                    alt="Preview"
+                    className="w-full max-h-40 object-cover rounded"
+                  />
                 )}
               </div>
             ))}
@@ -184,24 +243,39 @@ const EditPost = () => {
 
         {uploadProgress > 0 && uploadProgress < 100 && (
           <div className="w-full bg-gray-200 h-2 rounded">
-            <div className="bg-blue-500 h-2 rounded" style={{ width: `${uploadProgress}%` }}></div>
+            <div
+              className="bg-blue-500 h-2 rounded"
+              style={{ width: `${uploadProgress}%` }}
+            ></div>
           </div>
         )}
 
         <label className="flex items-center space-x-2">
-          <input type="checkbox" name="isPrivate" checked={post.isPrivate} onChange={handleInputChange} />
+          <input
+            type="checkbox"
+            name="isPrivate"
+            checked={post.isPrivate}
+            onChange={handleInputChange}
+          />
           <span>Private</span>
         </label>
 
         <input
           type="text"
           name="taggedFriends"
-          value={post.taggedFriends.join(',')}
-          onChange={(e) => setPost({ ...post, taggedFriends: e.target.value.split(',') })}
+          value={post.taggedFriends.join(",")}
+          onChange={(e) =>
+            setPost({ ...post, taggedFriends: e.target.value.split(",") })
+          }
           className="w-full p-2 border rounded"
         />
 
-        <button type="submit" className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Update Post</button>
+        <button
+          type="submit"
+          className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+        >
+          Update Post
+        </button>
       </form>
 
       <ToastContainer position="top-right" autoClose={2000} />
