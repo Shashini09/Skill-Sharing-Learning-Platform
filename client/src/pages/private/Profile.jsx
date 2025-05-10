@@ -517,5 +517,6 @@ const Profile = () => {
     </div>
   );
 };
+// Export the Profile component
 
 export default Profile;
