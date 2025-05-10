@@ -86,6 +86,9 @@ const Navbar = () => {
                 <NavLink to="/createpost" isActive={isActive("/createpost")}>
                   Create
                 </NavLink>
+                <NavLink to="/learning-plans" isActive={isActive("/profile")}>
+                  Learning Plans
+                </NavLink>
                 <NavLink to="/chat" isActive={isActive("/chat")}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
