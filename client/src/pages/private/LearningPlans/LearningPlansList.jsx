@@ -19,7 +19,14 @@ function LearningPlanList() {
     if (user?.id) {
       axios.get(`http://localhost:8080/api/learning-plans/all?userId=${user.id}`, { withCredentials: true })
         .then((res) => {
-          setLearningPlans(res.data);
+          const plans = res.data.map(plan => ({
+            ...plan,
+            activities: plan.activities?.map(activity => ({
+              ...activity,
+              isCompleted: activity.isCompleted || false
+            })) || []
+          }));
+          setLearningPlans(plans);
           setLoading(false);
         })
         .catch((err) => {
@@ -45,7 +52,7 @@ function LearningPlanList() {
   };
 
   const startEditing = () => {
-    setEditedPlan(JSON.parse(JSON.stringify(selectedPlan))); // Deep copy
+    setEditedPlan(JSON.parse(JSON.stringify(selectedPlan)));
     setIsEditing(true);
   };
 
@@ -63,7 +70,6 @@ function LearningPlanList() {
         { withCredentials: true }
       );
       
-      // Update both the selected plan and the plan in the list
       setSelectedPlan(response.data);
       setLearningPlans(prev => 
         prev.map(plan => plan.id === response.data.id ? response.data : plan)
@@ -75,6 +81,27 @@ function LearningPlanList() {
       console.error('Error updating learning plan:', error);
       setIsSaving(false);
       alert('Failed to update learning plan. Please try again.');
+    }
+  };
+
+  const handleUpdateProgress = async () => {
+    try {
+      setIsSaving(true);
+      const response = await axios.put(
+        `http://localhost:8080/api/learning-plans/update/${selectedPlan.id}`,
+        selectedPlan,
+        { withCredentials: true }
+      );
+      
+      setLearningPlans(prev =>
+        prev.map(plan => plan.id === response.data.id ? response.data : plan)
+      );
+      setIsSaving(false);
+      alert('Progress updated successfully!');
+    } catch (error) {
+      console.error('Error updating progress:', error);
+      setIsSaving(false);
+      alert('Failed to update progress. Please try again.');
     }
   };
 
@@ -102,7 +129,8 @@ function LearningPlanList() {
     const newActivity = {
       topic: "New Activity",
       description: "Description for the new activity",
-      resources: []
+      resources: [],
+      isCompleted: false
     };
     
     setEditedPlan(prev => ({
@@ -156,6 +184,27 @@ function LearningPlanList() {
       ...prev,
       activities: updatedActivities
     }));
+  };
+
+  const toggleActivityCompletion = (activityIndex) => {
+    const updatedPlan = {
+      ...selectedPlan,
+      activities: selectedPlan.activities.map((activity, index) =>
+        index === activityIndex
+          ? { ...activity, isCompleted: !activity.isCompleted }
+          : activity
+      )
+    };
+    setSelectedPlan(updatedPlan);
+    setLearningPlans(prev =>
+      prev.map(plan => plan.id === updatedPlan.id ? updatedPlan : plan)
+    );
+  };
+
+  const getProgress = (activities) => {
+    if (!activities || activities.length === 0) return 0;
+    const completed = activities.filter(activity => activity.isCompleted).length;
+    return Math.round((completed / activities.length) * 100);
   };
 
   const filteredPlans = searchTerm 
@@ -279,7 +328,17 @@ function LearningPlanList() {
                         <span className="text-sm font-medium text-gray-500">
                           {plan.activities?.length || 0} activities
                         </span>
-                        <span className="text-sm text-purple-600 font-medium">View Details</span>
+                        <div className="flex items-center">
+                          <div className="w-24 h-2 bg-gray-200 rounded-full mr-2">
+                            <div 
+                              className="h-2 bg-purple-600 rounded-full" 
+                              style={{ width: `${getProgress(plan.activities)}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-sm text-gray-500">
+                            {getProgress(plan.activities)}%
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -386,6 +445,19 @@ function LearningPlanList() {
                       </div>
                     )}
                     
+                    <div className="mb-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-medium text-gray-700">Progress</span>
+                        <span className="text-sm font-medium text-gray-700">{getProgress(selectedPlan.activities)}% Complete</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div 
+                          className="bg-purple-600 h-2.5 rounded-full" 
+                          style={{ width: `${getProgress(selectedPlan.activities)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+
                     {isEditing ? (
                       <div className="flex items-center px-4 py-3 bg-purple-50 rounded-lg">
                         <Calendar size={20} className="text-purple-600 mr-3" />
@@ -531,11 +603,21 @@ function LearningPlanList() {
                             <div className="space-y-4">
                               {selectedPlan.activities.map((activity, index) => (
                                 <div key={index} className="bg-gray-50 rounded-lg border border-gray-100 overflow-hidden">
-                                  <div className="px-4 py-3 bg-gray-100 border-b border-gray-200">
-                                    <h4 className="font-medium text-gray-800">{activity.topic}</h4>
+                                  <div className="px-4 py-3 bg-gray-100 border-b border-gray-200 flex items-center">
+                                    <input
+                                      type="checkbox"
+                                      checked={activity.isCompleted}
+                                      onChange={() => toggleActivityCompletion(index)}
+                                      className="mr-2 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                                    />
+                                    <h4 className={`font-medium ${activity.isCompleted ? 'text-gray-500 line-through' : 'text-gray-800'}`}>
+                                      {activity.topic}
+                                    </h4>
                                   </div>
                                   <div className="p-4">
-                                    <p className="text-gray-600 text-sm mb-3">{activity.description}</p>
+                                    <p className={`text-gray-600 text-sm mb-3 ${activity.isCompleted ? 'text-gray-400 line-through' : ''}`}>
+                                      {activity.description}
+                                    </p>
                                     
                                     {activity.resources?.length > 0 && (
                                       <div>
@@ -560,6 +642,12 @@ function LearningPlanList() {
                                   </div>
                                 </div>
                               ))}
+                              <Link 
+                                to={`/progress-template/${selectedPlan.id}`} 
+                                className="mt-2 inline-block text-indigo-600 hover:underline"
+                              >
+                                Update Learning Progress
+                              </Link>
                             </div>
                           ) : (
                             <div className="text-center py-6 bg-gray-50 rounded-lg">
