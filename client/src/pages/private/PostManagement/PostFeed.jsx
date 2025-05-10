@@ -14,17 +14,49 @@ const PostFeed = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [comments, setComments] = useState({});
+  const [visibleComments, setVisibleComments] = useState({});
+  const [commentText, setCommentText] = useState('');
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editCommentText, setEditCommentText] = useState('');
+  const [userLikes, setUserLikes] = useState({});
+  const [likeCounts, setLikeCounts] = useState({});
+
+
+
+
+  const userName = user?.name || "Anonymous"; // Fallback if undefined
+  const userId = user?.id || null; // Fallback if undefined
+
+  const toggleComments = (postId) => {
+    setVisibleComments(prev => ({
+      ...prev,
+      [postId]: !prev[postId]
+    }));
+    
+    // Fetch comments when opening
+    if (!visibleComments[postId]) {
+      fetchComments(postId);
+    }
+  };
 
   const fetchPosts = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('http://localhost:8080/api/posts/all', { 
+      const res = await axios.get('http://localhost:8080/api/posts/all', {
         withCredentials: true,
         params: { filter, search: searchTerm }
       });
-      // Sort posts by timestamp in descending order (newest first)
       const sortedPosts = res.data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
       setPosts(sortedPosts);
+      
+      // Initialize all comments as hidden
+      const initialVisibility = {};
+      sortedPosts.forEach(post => {
+        initialVisibility[post.id] = false;
+      });
+      setVisibleComments(initialVisibility);
+      
       setLoading(false);
     } catch (err) {
       toast.error('Failed to fetch posts');
@@ -32,6 +64,103 @@ const PostFeed = () => {
     }
   };
 
+
+
+  const fetchComments = async (postId) => {
+    try {
+      const res = await axios.get(`http://localhost:8080/api/comments/${postId}`, { withCredentials: true });
+      setComments((prev) => ({ ...prev, [postId]: res.data }));
+    } catch (err) {
+      toast.error('Failed to fetch comments');
+    }
+  };
+
+  const handleCommentSubmit = async (e, postId) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post(
+        `http://localhost:8080/api/comments`,
+        { text: commentText, postId ,user: userName},  // <-- include postId here
+        { withCredentials: true }
+      );
+      setComments((prev) => ({
+        ...prev,
+        [postId]: [...(prev[postId] || []), res.data],
+      }));
+      setCommentText('');
+    } catch (err) {
+      toast.error('Failed to post comment');
+    }
+  };
+  
+
+  const handleEditComment = (comment) => {
+    setEditingCommentId(comment.id);
+    setEditCommentText(comment.text);
+  };
+
+  const handleUpdateComment = async (commentId, postId) => {
+    try {
+      await axios.put(`http://localhost:8080/api/comments/${commentId}`, { text: editCommentText }, { withCredentials: true });
+      setComments((prev) => ({
+        ...prev,
+        [postId]: prev[postId].map((comment) =>
+          comment.id === commentId ? { ...comment, text: editCommentText } : comment
+        ),
+      }));
+      setEditingCommentId(null);
+      setEditCommentText('');
+    } catch (err) {
+      toast.error('Failed to update comment');
+    }
+  };
+
+  const handleDeleteComment = async (commentId, postId) => {
+    try {
+      await axios.delete(`http://localhost:8080/api/comments/${commentId}`, { withCredentials: true });
+      setComments((prev) => ({
+        ...prev,
+        [postId]: prev[postId].filter((comment) => comment.id !== commentId),
+      }));
+    } catch (err) {
+      toast.error('Failed to delete comment');
+    }
+  };
+
+  const handleLike = async (postId) => {
+    try {
+      await axios.post(
+        `http://localhost:8080/api/likes`,
+        {
+          postId,
+          userId,
+          timestamp: new Date().toISOString(),
+        },
+        { withCredentials: true }
+      );
+      fetchLikeCount(postId);
+      fetchUserLiked(postId);
+    } catch {
+      toast.error("Like failed");
+    }
+  };
+  
+  const fetchLikeCount = async (postId) => {
+    const res = await axios.get(
+      `http://localhost:8080/api/likes/${postId}/count`,
+      { withCredentials: true }
+    );
+    setLikeCounts((prev) => ({ ...prev, [postId]: res.data }));
+  };
+  
+  const fetchUserLiked = async (postId) => {
+    const res = await axios.get(
+      `http://localhost:8080/api/likes/${postId}/user/${userId}`,
+      { withCredentials: true }
+    );
+    setUserLikes((prev) => ({ ...prev, [postId]: res.data }));
+  };
+  
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this post?')) {
@@ -422,23 +551,127 @@ const PostFeed = () => {
                           </div>
                         </div>
                       )}
+
+               {/* Comments Section */}
+{visibleComments[post.id] && (
+  <div className="mt-6 border-t border-gray-300 pt-6">
+    <form onSubmit={(e) => handleCommentSubmit(e, post.id)} className="mb-6">
+      <textarea
+        className="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        rows="3"
+        placeholder="Write a comment..."
+        value={commentText}
+        onChange={(e) => setCommentText(e.target.value)}
+        required
+      />
+      <button
+        type="submit"
+        className="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg transition-colors"
+      >
+        Post Comment
+      </button>
+    </form>
+
+    <ul className="space-y-4">
+      {(comments[post.id] || []).map((comment) => (
+        <li
+          key={comment.id}
+          className="p-4 bg-white rounded-xl shadow border border-gray-200"
+        >
+          <div className="text-sm text-gray-600 mb-2 flex justify-between items-center">
+            <span>
+              <strong className="text-blue-700">{comment.user}</strong> ·{' '}
+              {new Date(comment.timestamp).toLocaleString()}
+            </span>
+          </div>
+
+          {editingCommentId === comment.id ? (
+            <>
+              <textarea
+                className="w-full border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                value={editCommentText}
+                onChange={(e) => setEditCommentText(e.target.value)}
+              />
+              <div className="mt-2 flex gap-2">
+                <button
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded-lg"
+                  onClick={() => handleUpdateComment(comment.id, post.id)}
+                >
+                  Save
+                </button>
+                <button
+                  className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-1 rounded-lg"
+                  onClick={() => setEditingCommentId(null)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-gray-800 mb-2">{comment.text}</p>
+              {comment.user === user?.name && (
+                <div className="flex gap-4 text-sm">
+                  <button
+                    className="text-blue-600 hover:underline"
+                    onClick={() => handleEditComment(comment)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="text-red-600 hover:underline"
+                    onClick={() => handleDeleteComment(comment.id, post.id)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </li>
+      ))}
+    </ul>
+
+ 
+  </div>
+)}
+
                     </div>
                     
                     {/* Post Action Bar */}
                     <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-t border-gray-200">
                       <div className="flex items-center space-x-4">
-                        <button className="flex items-center text-gray-500 hover:text-blue-600 transition">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                          </svg>
-                          <span>{post.likes || 0}</span>
-                        </button>
-                        <button className="flex items-center text-gray-500 hover:text-blue-600 transition">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                          </svg>
-                          <span>{post.comments?.length || 0}</span>
-                        </button>
+                      <button
+      onClick={() => handleLike(post.id)}
+      className={`flex items-center transition ${
+        userLikes[post.id] ? "text-blue-600" : "text-gray-500 hover:text-blue-600"
+      }`}
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-5 w-5 mr-1"
+        fill={userLikes[post.id] ? "currentColor" : "none"}
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+        />
+      </svg>
+      {userLikes[post.id] ? 'Liked' : 'Like'} ({likeCounts[post.id] || 0})
+    </button>
+                        <button 
+  onClick={() => toggleComments(post.id)} 
+  className="flex items-center text-gray-500 hover:text-blue-600 transition"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+  </svg>
+  <span>{post.comments?.length || 0}</span>
+</button>
                         <button className="flex items-center text-gray-500 hover:text-blue-600 transition">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
