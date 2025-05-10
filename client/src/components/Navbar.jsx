@@ -13,6 +13,10 @@ const Navbar = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0); // Notification count state
 
+  const incrementNotificationCount = () => {
+    setNotificationCount((prev) => prev + 1);
+  };
+
   // Check if the current route matches the link
   const isActive = (path) => {
     return location.pathname === path;
@@ -42,6 +46,9 @@ const Navbar = () => {
   // Toggle notifications
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
+    if (showNotifications) {
+      setNotificationCount(0); // Reset count when notifications are viewed
+    }
   };
 
   // Show loading state with skeleton placeholders
@@ -136,7 +143,7 @@ const Navbar = () => {
 
                 {showNotifications && (
                   <div className="absolute right-0 mt-2 w-80">
-                    <Notification />
+                    <Notification incrementNotificationCount={incrementNotificationCount} />
                   </div>
                 )}
               </div>
