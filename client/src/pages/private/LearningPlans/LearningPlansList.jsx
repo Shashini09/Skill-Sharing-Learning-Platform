@@ -644,9 +644,9 @@ function LearningPlanList() {
                               ))}
                               <Link 
                                 to={`/progress-template/${selectedPlan.id}`} 
-                                className="mt-2 inline-block text-indigo-600 hover:underline"
+                                className="flex items-center justify-center bg-purple-600 text-white px-4 py-2 rounded-lg shadow hover:bg-purple-700 transition-all"
                               >
-                                Update Learning Progress
+                                + Update Learning Progress
                               </Link>
                             </div>
                           ) : (
