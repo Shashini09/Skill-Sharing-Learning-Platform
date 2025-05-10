@@ -9,6 +9,6 @@ import java.util.List;
 import java.util.Optional;;
 
 public interface LikeRepository extends MongoRepository<Like, String> {
-    Optional<Like> findByPostIdAndUserId(String postId, String userId);
+    Optional<Like> findByPostIdAndUserId(String postId, String user);
     Long countByPostId(String postId);
 }

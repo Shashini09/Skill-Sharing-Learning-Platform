@@ -17,7 +17,13 @@ public class LearningPlanController {
     private LearningPlanService learningPlanService;
 
     @GetMapping("/all")
-    public ResponseEntity<List<LearningPlan>> getAllLearningPlans(@RequestParam String userId) {
+    public ResponseEntity<List<LearningPlan>> getAllLearningPlans() {
+        List<LearningPlan> plans = learningPlanService.getAllLearningPlans();
+        return ResponseEntity.ok(plans);
+    }
+
+    @GetMapping("/user")
+    public ResponseEntity<List<LearningPlan>> getLearningPlansByUserId(@RequestParam String userId) {
         List<LearningPlan> plans = learningPlanService.getLearningPlansByUserId(userId);
         return ResponseEntity.ok(plans);
     }

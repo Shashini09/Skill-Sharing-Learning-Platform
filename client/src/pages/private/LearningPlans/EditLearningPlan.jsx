@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
+import { RefreshCcw } from 'lucide-react';
 
 function EditLearningPlan() {
   const { id } = useParams();
@@ -13,9 +14,35 @@ function EditLearningPlan() {
   });
 
   useEffect(() => {
-    axios.get(`http://localhost:8080/api/learning-plans/${id}`)
-      .then((response) => setPlan(response.data))
-      .catch((error) => console.error('Error fetching plan:', error));
+    axios
+      .get(`http://localhost:8080/api/learning-plans/${id}`, { withCredentials: true })
+      .then((response) => {
+        console.log('API Response:', response.data); // Debug the response
+        // Ensure the response data matches the state structure
+        const fetchedPlan = {
+          title: response.data.title || '',
+          description: response.data.description || '',
+          startDate: response.data.startDate
+            ? new Date(response.data.startDate).toISOString().split('T')[0]
+            : '',
+          activities: Array.isArray(response.data.activities)
+            ? response.data.activities.map((activity) => ({
+                topic: activity.topic || '',
+                description: activity.description || '',
+                resources: Array.isArray(activity.resources)
+                  ? activity.resources.map((resource) => ({
+                      title: resource.title || '',
+                      url: resource.url || '',
+                    }))
+                  : [],
+              }))
+            : [],
+        };
+        setPlan(fetchedPlan);
+      })
+      .catch((error) => {
+        console.error('Error fetching plan:', error);
+      });
   }, [id]);
 
   const handleChange = (e) => {
@@ -55,14 +82,18 @@ function EditLearningPlan() {
 
   const removeResource = (activityIndex, resourceIndex) => {
     const updatedActivities = [...plan.activities];
-    updatedActivities[activityIndex].resources = updatedActivities[activityIndex].resources.filter((_, i) => i !== resourceIndex);
+    updatedActivities[activityIndex].resources = updatedActivities[activityIndex].resources.filter(
+      (_, i) => i !== resourceIndex
+    );
     setPlan({ ...plan, activities: updatedActivities });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:8080/api/learning-plans/update/${id}`, plan);
+      await axios.put(`http://localhost:8080/api/learning-plans/update/${id}`, plan, {
+        withCredentials: true,
+      });
       navigate('/learning-plans');
     } catch (error) {
       console.error('Error updating plan:', error);
@@ -79,7 +110,7 @@ function EditLearningPlan() {
           <input
             type="text"
             name="title"
-            value={plan.title}
+            value={plan.title || ''} // Ensure value is never undefined
             onChange={handleChange}
             className="w-full border rounded-md px-4 py-2"
           />
@@ -90,7 +121,7 @@ function EditLearningPlan() {
           <label className="block font-semibold mb-1">Description</label>
           <textarea
             name="description"
-            value={plan.description}
+            value={plan.description || ''} // Ensure value is never undefined
             onChange={handleChange}
             rows={4}
             className="w-full border rounded-md px-4 py-2"
@@ -103,7 +134,7 @@ function EditLearningPlan() {
           <input
             type="date"
             name="startDate"
-            value={plan.startDate?.split('T')[0] || ''}
+            value={plan.startDate || ''} // Ensure value is never undefined
             onChange={handleChange}
             className="w-full border rounded-md px-4 py-2"
           />
@@ -118,7 +149,7 @@ function EditLearningPlan() {
                 <label className="block font-semibold">Topic</label>
                 <input
                   type="text"
-                  value={activity.topic}
+                  value={activity.topic || ''} // Ensure value is never undefined
                   onChange={(e) => handleActivityChange(activityIndex, 'topic', e.target.value)}
                   className="w-full border rounded-md px-3 py-2"
                 />
@@ -126,7 +157,7 @@ function EditLearningPlan() {
               <div>
                 <label className="block font-semibold">Description</label>
                 <textarea
-                  value={activity.description}
+                  value={activity.description || ''} // Ensure value is never undefined
                   onChange={(e) => handleActivityChange(activityIndex, 'description', e.target.value)}
                   className="w-full border rounded-md px-3 py-2"
                   rows={2}
@@ -141,7 +172,7 @@ function EditLearningPlan() {
                     <input
                       type="text"
                       placeholder="Title"
-                      value={resource.title}
+                      value={resource.title || ''} // Ensure value is never undefined
                       onChange={(e) =>
                         handleResourceChange(activityIndex, resourceIndex, 'title', e.target.value)
                       }
@@ -150,7 +181,7 @@ function EditLearningPlan() {
                     <input
                       type="text"
                       placeholder="URL"
-                      value={resource.url}
+                      value={resource.url || ''} // Ensure value is never undefined
                       onChange={(e) =>
                         handleResourceChange(activityIndex, resourceIndex, 'url', e.target.value)
                       }
@@ -210,5 +241,3 @@ function EditLearningPlan() {
 }
 
 export default EditLearningPlan;
-
-

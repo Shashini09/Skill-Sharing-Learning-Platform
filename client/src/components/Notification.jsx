@@ -1,62 +1,81 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 
-const Notification = () => {
+const Notification = ({ incrementNotificationCount }) => {
   const [notifications, setNotifications] = useState([]);
-  const [stompClient, setStompClient] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const clientRef = useRef(null); // 🔐 Keeps client reference stable
 
   useEffect(() => {
-    // Initialize WebSocket connection
-    const socket = new SockJS('http://localhost:8080/notifications-websocket');
+    const socket = new SockJS('http://localhost:8080/chat-websocket');
     const client = new Client({
       webSocketFactory: () => socket,
       reconnectDelay: 5000,
-      debug: (str) => {
-        console.log('STOMP: ' + str);
-      },
+      debug: (str) => console.log('STOMP:', str),
     });
 
     client.onConnect = () => {
-      console.log('Connected to notifications WebSocket');
+      console.log('✅ Connected to WebSocket');
 
-      // Subscribe to the notifications topic
       client.subscribe('/topic/notifications', (message) => {
-        const notification = JSON.parse(message.body);
-        setNotifications((prev) => [notification, ...prev]);
+        try {
+          const notification = JSON.parse(message.body);
+          setNotifications((prev) => [notification, ...prev]);
+          setUnreadCount((prev) => prev + 1);
+          incrementNotificationCount();
+        } catch (err) {
+          console.error('❌ Error parsing message:', err);
+        }
       });
     };
 
     client.onStompError = (frame) => {
-      console.error('Broker reported error: ' + frame.headers['message']);
+      console.error('❌ STOMP error:', frame.headers['message']);
     };
 
     client.onWebSocketError = (error) => {
-      console.error('WebSocket error:', error);
+      console.error('❌ WebSocket error:', error);
     };
 
     client.activate();
-    setStompClient(client);
+    clientRef.current = client;
 
-    // Cleanup on component unmount
     return () => {
-      if (client && client.connected) {
-        client.deactivate();
-      }
+      console.log('🔌 Disconnecting WebSocket');
+      client.deactivate(); // ✅ Disconnect safely on unmount
     };
-  }, []);
+  }, []); // ✅ Empty dependency ensures one-time setup
+
+  const markAllAsRead = () => {
+    setUnreadCount(0);
+  };
 
   return (
-    <div className="fixed bottom-4 right-4 w-80 bg-white shadow-lg rounded-lg overflow-hidden">
-      <div className="bg-blue-600 text-white px-4 py-2 font-bold">Notifications</div>
+    <div className="fixed bottom-4 right-4 w-80 bg-white shadow-lg rounded-lg overflow-hidden z-50">
+      <div className="bg-blue-600 text-white px-4 py-2 font-bold flex justify-between items-center">
+        <span>Notifications</span>
+        {unreadCount > 0 && (
+          <button
+            onClick={markAllAsRead}
+            className="text-sm bg-white text-blue-600 px-2 py-1 rounded"
+          >
+            Mark all as read
+          </button>
+        )}
+      </div>
       <ul className="max-h-64 overflow-y-auto">
         {notifications.map((notification, index) => (
           <li key={index} className="px-4 py-2 border-b border-gray-200">
             {notification.type === 'COMMENT' && (
-              <p><strong>{notification.user}</strong> commented on your post: "{notification.text}"</p>
+              <p className="text-blue-600">
+                <strong>{notification.user}</strong> commented: "{notification.text}"
+              </p>
             )}
             {notification.type === 'LIKE' && (
-              <p><strong>{notification.user}</strong> liked your post.</p>
+              <p className="text-blue-600">
+                <strong>{notification.user}</strong> liked your post.
+              </p>
             )}
           </li>
         ))}

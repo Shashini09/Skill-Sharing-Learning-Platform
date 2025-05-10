@@ -10,7 +10,6 @@ import "./App.css";
 import Register from "./pages/public/Register";
 import EditProfile from "./pages/private/EditProfile";
 
-
 import CreateLearningPlan from "./pages/private/LearningPlans/CreateLearningPlan";
 import LearningPlanList from "./pages/private/LearningPlans/LearningPlansList";
 import EditLearningPlan from "./pages/private/LearningPlans/EditLearningPlan";
@@ -29,13 +28,15 @@ import CreatePost from "./pages/private/PostManagement/CreatePost";
 // import EditPost from "./pages/private/PostManagement/EditProfile";
 import EditPost from "./pages/private/PostManagement/EditPost";
 import PostFeed from "./pages/private/PostManagement/PostFeed";
-import Chat from "./pages/Chat/Chat";
 
+import Chat from "./pages/Chat/Chat";
 
 //import CreatePost from "./pages/private/PostManagement/CreatePost";
 //import EditPost from "./pages/private/PostManagement/EditPost";
 //import PostFeed from "./pages/private/PostManagement/PostFeed";
 
+import CreateProgressUpdate from "./pages/private/LearningPlans/CreateProgressUpdate";
+import ProgressUpdate from "./pages/private/LearningPlans/ProgressUpdate";
 
 function App() {
   const { loading } = useAuth();
@@ -62,23 +63,31 @@ function App() {
             <Route path="/allusers" element={<AllUsers />} />
             <Route path="/following" element={<Following />} />
             <Route path="/followers" element={<Followers />} />
-            <Route path="/chat" element={<Chat/>} />
+            <Route path="/chat" element={<Chat />} />
             <Route path="/createpost" element={<CreatePost />} />
-            <Route path="/edit-pos/:id" element={<EditPost/>} />
-            <Route path="/postfeed" element={<PostFeed/>} />
 
-            <Route path="/frendsprofile/:id" element={<FriendsProfile/>} />
+
+            <Route path="/frendsprofile/:id" element={<FriendsProfile />} />
             <Route path="/feed" element={<Feed />} />
+
             <Route path="/learning-plans" element={<LearningPlanList />} />
-            <Route path="/create-learning-plans" element={<CreateLearningPlan />} />
-            <Route path="/edit-learning-plan/:id" component={<EditLearningPlan />} />
+            <Route
+              path="/create-learning-plans"
+              element={<CreateLearningPlan />}
+            />
+            <Route
+              path="/edit-learning-plan/:id"
+              element={<EditLearningPlan />}
+            />
+            <Route
+              path="/progress-template/:id"
+              element={<CreateProgressUpdate />}
+            />
+            <Route path="/progress-feed" element={<ProgressUpdate />} />
 
             <Route path="/createpost" element={<CreatePost />} />
-            <Route path="/editpost" element={<EditPost/>} />
-            <Route path="/postfeed" element={<PostFeed/>} />
-
-
-
+            <Route path="/editpost" element={<EditPost />} />
+            <Route path="/postfeed" element={<PostFeed />} />
           </Route>
         </Routes>
       </div>
