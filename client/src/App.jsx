@@ -86,7 +86,7 @@ function App() {
             <Route path="/progress-feed" element={<ProgressUpdate />} />
 
             <Route path="/createpost" element={<CreatePost />} />
-            <Route path="/editpost" element={<EditPost />} />
+            <Route path="/edit-post/:id" element={<EditPost />} />
             <Route path="/postfeed" element={<PostFeed />} />
           </Route>
         </Routes>
