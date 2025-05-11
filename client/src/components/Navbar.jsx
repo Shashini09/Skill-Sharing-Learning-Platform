@@ -91,7 +91,7 @@ const Navbar = () => {
                   Feed
                 </NavLink>
                 <NavLink to="/createpost" isActive={isActive("/createpost")}>
-                  Create
+                  Create Post
                 </NavLink>
                 <NavLink to="/learning-plans" isActive={isActive("/profile")}>
                   Learning Plans

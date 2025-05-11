@@ -23,7 +23,7 @@ const EditPost = () => {
 
     mediaUrls: [],
     mediaTypes: [],
-    isPrivate: false,
+    // isPrivate: false,
     taggedFriends: [],
     location: "",
     timestamp: "",
@@ -487,7 +487,7 @@ const EditPost = () => {
           </div>
         )}
 
-        <label className="flex items-center space-x-2">
+        {/* <label className="flex items-center space-x-2">
           <input
             type="checkbox"
             name="isPrivate"
@@ -496,7 +496,7 @@ const EditPost = () => {
             className="h-4 w-4 text-blue-500"
           />
           <span className="text-gray-700">Private</span>
-        </label>
+        </label> */}
 
         <input
           type="text"
