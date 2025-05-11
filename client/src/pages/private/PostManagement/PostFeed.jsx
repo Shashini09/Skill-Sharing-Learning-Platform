@@ -126,16 +126,19 @@ const PostFeed = () => {
   };
 
   const handleDeleteComment = async (commentId, postId) => {
-    try {
-      await axios.delete(`http://localhost:8080/api/comments/${commentId}`, {
-        withCredentials: true,
-      });
-      setComments((prev) => ({
-        ...prev,
-        [postId]: prev[postId].filter((comment) => comment.id !== commentId),
-      }));
-    } catch (err) {
-      toast.error("Failed to delete comment");
+    if (window.confirm("Are you sure you want to delete this comment?")) {
+      try {
+        await axios.delete(`http://localhost:8080/api/comments/${commentId}`, {
+          withCredentials: true,
+        });
+        setComments((prev) => ({
+          ...prev,
+          [postId]: prev[postId].filter((comment) => comment.id !== commentId),
+        }));
+        toast.success("Comment deleted successfully"); // Local toast message
+      } catch (err) {
+        toast.error("Failed to delete comment");
+      }
     }
   };
 
