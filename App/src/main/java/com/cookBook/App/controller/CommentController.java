@@ -67,6 +67,7 @@ public class CommentController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+
     // 🧑‍🤝‍🧑 Get close friends by userId (based on comment count)
     @GetMapping("/close-friends/by-user/{userName}")
     public ResponseEntity<?> getCloseFriendsByUsername(@PathVariable String userName) {
@@ -85,7 +86,7 @@ public class CommentController {
 
         return ResponseEntity.ok(sortedFriends);
     }
-
+    
 
 
     @DeleteMapping("/{id}")

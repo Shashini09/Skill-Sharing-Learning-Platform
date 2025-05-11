@@ -19,6 +19,8 @@ const PostFeed = () => {
   const [editCommentText, setEditCommentText] = useState("");
   const [userLikes, setUserLikes] = useState({});
   const [likeCounts, setLikeCounts] = useState({});
+  const [isCommentPopupOpen, setIsCommentPopupOpen] = useState(false);
+  const [activePostId, setActivePostId] = useState(null);
 
   const getCommentCount = (postId) => {
     return comments[postId]?.length || 0;
@@ -27,16 +29,15 @@ const PostFeed = () => {
   const userName = user?.name || "Anonymous"; // Fallback if undefined
   const userId = user?.id || null; // Fallback if undefined
 
-  const toggleComments = (postId) => {
-    setVisibleComments((prev) => ({
-      ...prev,
-      [postId]: !prev[postId],
-    }));
+  const openCommentPopup = (postId) => {
+    setActivePostId(postId);
+    setIsCommentPopupOpen(true);
+    fetchComments(postId);
+  };
 
-    // Fetch comments when opening
-    if (!visibleComments[postId]) {
-      fetchComments(postId);
-    }
+  const closeCommentPopup = () => {
+    setIsCommentPopupOpen(false);
+    setActivePostId(null);
   };
 
   const fetchPosts = async () => {
@@ -544,101 +545,6 @@ const PostFeed = () => {
                         </div>
                       </div>
                     )}
-
-                  {/* Comments Section */}
-                  {visibleComments[post.id] && (
-                    <div className="mt-6 border-t border-gray-300 pt-6">
-                      <form
-                        onSubmit={(e) => handleCommentSubmit(e, post.id)}
-                        className="mb-6"
-                      >
-                        <textarea
-                          className="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          rows="3"
-                          placeholder="Write a comment..."
-                          value={commentText}
-                          onChange={(e) => setCommentText(e.target.value)}
-                          required
-                        />
-                        <button
-                          type="submit"
-                          className="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg transition-colors"
-                        >
-                          Post Comment
-                        </button>
-                      </form>
-
-                      <ul className="space-y-4">
-                        {(comments[post.id] || []).map((comment) => (
-                          <li
-                            key={comment.id}
-                            className="p-4 bg-white rounded-xl shadow border border-gray-200"
-                          >
-                            <div className="text-sm text-gray-600 mb-2 flex justify-between items-center">
-                              <span>
-                                <strong className="text-blue-700">
-                                  {comment.user}
-                                </strong>{" "}
-                                · {new Date(comment.timestamp).toLocaleString()}
-                              </span>
-                            </div>
-
-                            {editingCommentId === comment.id ? (
-                              <>
-                                <textarea
-                                  className="w-full border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                                  value={editCommentText}
-                                  onChange={(e) =>
-                                    setEditCommentText(e.target.value)
-                                  }
-                                />
-                                <div className="mt-2 flex gap-2">
-                                  <button
-                                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded-lg"
-                                    onClick={() =>
-                                      handleUpdateComment(comment.id, post.id)
-                                    }
-                                  >
-                                    Save
-                                  </button>
-                                  <button
-                                    className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-1 rounded-lg"
-                                    onClick={() => setEditingCommentId(null)}
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
-                              </>
-                            ) : (
-                              <>
-                                <p className="text-gray-800 mb-2">
-                                  {comment.text}
-                                </p>
-                                {comment.user === user?.name && (
-                                  <div className="flex gap-4 text-sm">
-                                    <button
-                                      className="text-blue-600 hover:underline"
-                                      onClick={() => handleEditComment(comment)}
-                                    >
-                                      Edit
-                                    </button>
-                                    <button
-                                      className="text-red-600 hover:underline"
-                                      onClick={() =>
-                                        handleDeleteComment(comment.id, post.id)
-                                      }
-                                    >
-                                      Delete
-                                    </button>
-                                  </div>
-                                )}
-                              </>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
                 </div>
 
                 {/* Post Action Bar */}
@@ -670,7 +576,7 @@ const PostFeed = () => {
                       {likeCounts[post.id] || 0})
                     </button>
                     <button
-                      onClick={() => toggleComments(post.id)}
+                      onClick={() => openCommentPopup(post.id)}
                       className="flex items-center text-gray-500 hover:text-blue-600 transition"
                     >
                       <svg
@@ -687,9 +593,19 @@ const PostFeed = () => {
                           d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
                         />
                       </svg>
-                      <span>{post.comments?.length || 0}</span>
+                      <span>{getCommentCount(post.id)}</span>
                     </button>
-                    <button className="flex items-center text-gray-500 hover:text-blue-600 transition">
+                    <button
+                      onClick={() => {
+                        const postUrl = `${window.location.origin}/post/${post.id}`;
+                        const message = `Check out this post: ${postUrl}`;
+                        window.open(
+                          `https://wa.me/?text=${encodeURIComponent(message)}`,
+                          "_blank"
+                        );
+                      }}
+                      className="flex items-center text-gray-500 hover:text-green-600 transition"
+                    >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-5 w-5 mr-1"
@@ -697,14 +613,15 @@ const PostFeed = () => {
                         viewBox="0 0 24 24"
                         stroke="currentColor"
                       >
+                        {" "}
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
                           d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-                        />
+                        />{" "}
                       </svg>
-                      <span>Share</span>
+                      <span>Share </span>
                     </button>
                   </div>
                   {user?.id === post.userId && (
@@ -729,6 +646,115 @@ const PostFeed = () => {
           </div>
         )}
       </div>
+
+      {/* Comments Section Popup */}
+      {isCommentPopupOpen && (
+        <div
+          className="fixed inset-0 flex items-center justify-center z-30"
+          style={{ backgroundColor: "rgba(233, 239, 240, 0.91)" }} // Light blue with 50% opacity
+        >
+          <div className="bg-white w-3/4 max-w-2xl h-4/5 rounded-lg shadow-lg overflow-hidden">
+            <div className="flex justify-between items-center bg-blue-700 text-white px-6 py-3">
+              <h2 className="text-lg font-bold">
+                Comments ({getCommentCount(activePostId)})
+              </h2>
+              <button
+                onClick={closeCommentPopup}
+                className="text-white hover:text-gray-200"
+              >
+                &times;
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto h-full">
+              <form
+                onSubmit={(e) => handleCommentSubmit(e, activePostId)}
+                className="mb-6"
+              >
+                <textarea
+                  className="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows="3"
+                  placeholder="Write a comment..."
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  required
+                />
+                <button
+                  type="submit"
+                  className="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg transition-colors"
+                >
+                  Post Comment
+                </button>
+              </form>
+
+              <ul className="space-y-4">
+                {(comments[activePostId] || []).map((comment) => (
+                  <li
+                    key={comment.id}
+                    className="p-4 bg-white rounded-xl shadow border border-gray-200"
+                  >
+                    <div className="text-sm text-gray-600 mb-2 flex justify-between items-center">
+                      <span>
+                        <strong className="text-blue-700">
+                          {comment.user}
+                        </strong>{" "}
+                        · {new Date(comment.timestamp).toLocaleString()}
+                      </span>
+                    </div>
+
+                    {editingCommentId === comment.id ? (
+                      <>
+                        <textarea
+                          className="w-full border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                          value={editCommentText}
+                          onChange={(e) => setEditCommentText(e.target.value)}
+                        />
+                        <div className="mt-2 flex gap-2">
+                          <button
+                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded-lg"
+                            onClick={() =>
+                              handleUpdateComment(comment.id, activePostId)
+                            }
+                          >
+                            Save
+                          </button>
+                          <button
+                            className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-1 rounded-lg"
+                            onClick={() => setEditingCommentId(null)}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-gray-800 mb-2">{comment.text}</p>
+                        {comment.user === user?.name && (
+                          <div className="flex gap-4 text-sm">
+                            <button
+                              className="text-blue-600 hover:underline"
+                              onClick={() => handleEditComment(comment)}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              className="text-red-600 hover:underline"
+                              onClick={() =>
+                                handleDeleteComment(comment.id, activePostId)
+                              }
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ToastContainer position="top-right" autoClose={3000} />
     </div>
