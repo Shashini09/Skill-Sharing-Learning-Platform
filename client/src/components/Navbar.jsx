@@ -69,7 +69,10 @@ const Navbar = () => {
         <div className="flex justify-between items-center">
           {/* Logo and Brand */}
           <div className="flex items-center">
-            <Link to="/" className="text-xl font-bold text-white flex items-center">
+            <Link
+              to="/"
+              className="text-xl font-bold text-white flex items-center"
+            >
               <span className="text-2xl mr-2">🍲</span>
               <span className="bg-gradient-to-r from-white to-indigo-200 bg-clip-text text-transparent">
                 CookBook
@@ -91,10 +94,19 @@ const Navbar = () => {
                   Feed
                 </NavLink>
                 <NavLink to="/createpost" isActive={isActive("/createpost")}>
-                  Create
+                  Create Post
                 </NavLink>
-                <NavLink to="/learning-plans" isActive={isActive("/profile")}>
+                <NavLink
+                  to="/learning-plans"
+                  isActive={isActive("/learning-plans")}
+                >
                   Learning Plans
+                </NavLink>
+                <NavLink
+                  to="/progress-feed"
+                  isActive={isActive("/progress-feed")}
+                >
+                  Progress Feed
                 </NavLink>
                 <NavLink to="/chat" isActive={isActive("/chat")}>
                   <svg
@@ -146,7 +158,9 @@ const Navbar = () => {
 
                 {showNotifications && (
                   <div className="absolute right-0 mt-2 w-80">
-                    <Notification incrementNotificationCount={incrementNotificationCount} />
+                    <Notification
+                      incrementNotificationCount={incrementNotificationCount}
+                    />
                   </div>
                 )}
               </div>
@@ -169,7 +183,9 @@ const Navbar = () => {
                       </span>
                     </div>
                   )}
-                  <span className="ml-2 text-sm font-medium text-indigo-100">{user.name}</span>
+                  <span className="ml-2 text-sm font-medium text-indigo-100">
+                    {user.name}
+                  </span>
                 </div>
 
                 <button
@@ -280,22 +296,44 @@ const Navbar = () => {
                       </span>
                     </div>
                   )}
-                  <span className="ml-2 text-sm font-medium text-indigo-100">{user.name}</span>
+                  <span className="ml-2 text-sm font-medium text-indigo-100">
+                    {user.name}
+                  </span>
                 </div>
                 <div className="flex flex-col space-y-2">
-                  <MobileNavLink to="/profile" isActive={isActive("/profile")} onClick={toggleMobileMenu}>
+                  <MobileNavLink
+                    to="/profile"
+                    isActive={isActive("/profile")}
+                    onClick={toggleMobileMenu}
+                  >
                     Profile
                   </MobileNavLink>
-                  <MobileNavLink to="/allusers" isActive={isActive("/allusers")} onClick={toggleMobileMenu}>
+                  <MobileNavLink
+                    to="/allusers"
+                    isActive={isActive("/allusers")}
+                    onClick={toggleMobileMenu}
+                  >
                     Friends
                   </MobileNavLink>
-                  <MobileNavLink to="/postfeed" isActive={isActive("/postfeed")} onClick={toggleMobileMenu}>
+                  <MobileNavLink
+                    to="/postfeed"
+                    isActive={isActive("/postfeed")}
+                    onClick={toggleMobileMenu}
+                  >
                     Feed
                   </MobileNavLink>
-                  <MobileNavLink to="/createpost" isActive={isActive("/createpost")} onClick={toggleMobileMenu}>
+                  <MobileNavLink
+                    to="/createpost"
+                    isActive={isActive("/createpost")}
+                    onClick={toggleMobileMenu}
+                  >
                     Create Post
                   </MobileNavLink>
-                  <MobileNavLink to="/chat" isActive={isActive("/chat")} onClick={toggleMobileMenu}>
+                  <MobileNavLink
+                    to="/chat"
+                    isActive={isActive("/chat")}
+                    onClick={toggleMobileMenu}
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-5 w-5 inline-block mr-1"

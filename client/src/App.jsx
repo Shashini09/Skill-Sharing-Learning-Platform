@@ -25,7 +25,8 @@ import Followers from "./pages/private/Followers";
 
 import FriendsProfile from "./pages/private/FriendsProfile";
 import CreatePost from "./pages/private/PostManagement/CreatePost";
-import EditPost from "./pages/private/PostManagement/EditProfile";
+// import EditPost from "./pages/private/PostManagement/EditProfile";
+import EditPost from "./pages/private/PostManagement/EditPost";
 import PostFeed from "./pages/private/PostManagement/PostFeed";
 
 import Chat from "./pages/Chat/Chat";
@@ -64,8 +65,6 @@ function App() {
             <Route path="/followers" element={<Followers />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/createpost" element={<CreatePost />} />
-            <Route path="/editpost" element={<EditPost />} />
-            <Route path="/postfeed" element={<PostFeed />} />
 
             <Route path="/frendsprofile/:id" element={<FriendsProfile />} />
             <Route path="/feed" element={<Feed />} />
@@ -86,7 +85,7 @@ function App() {
             <Route path="/progress-feed" element={<ProgressUpdate />} />
 
             <Route path="/createpost" element={<CreatePost />} />
-            <Route path="/editpost" element={<EditPost />} />
+            <Route path="/edit-post/:id" element={<EditPost />} />
             <Route path="/postfeed" element={<PostFeed />} />
           </Route>
         </Routes>

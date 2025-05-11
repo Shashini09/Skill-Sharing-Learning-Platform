@@ -1,23 +1,18 @@
-
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
 import { useAuth } from "../../../context/AuthContext";
-
+import { storage } from '../../../firebase/firebase';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import axios from 'axios';
 
 const CreatePost = () => {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   const [isListening, setIsListening] = useState(false);
   const [language, setLanguage] = useState('en-US');
   const navigate = useNavigate();
-
   const { user } = useAuth();
-
-  console.log('User:', user);
-  
 
   const [post, setPost] = useState({
     userId: '',
@@ -28,20 +23,18 @@ const CreatePost = () => {
     isPrivate: false,
     taggedFriends: [],
     location: '',
-
     timestamp: ''
-   
-
   });
+
+  const permittedMediaTypes = ['image/png', 'image/jpeg', 'video/mp4'];
 
   const [mediaFiles, setMediaFiles] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  // Initialize userId and timestamp on component mount
   useEffect(() => {
     if (!user?.id) {
-      toast.error('User not logged in. Please log in to create a post.');
-      setTimeout(() => navigate('/login'), 2000); // Redirect to login if no user.id
+      toast.error('User not logged in. Please log in to create a post.', { position: "top-center" });
+      setTimeout(() => navigate('/login'), 2000);
       return;
     }
     const timestamp = new Date().toISOString();
@@ -51,13 +44,12 @@ const CreatePost = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-
     setPost({ ...post, [name]: type === 'checkbox' ? checked : value });
   };
 
   const startListening = () => {
-    if (!SpeechRecognition) return toast.error('Speech recognition not supported.');
-    if (isListening) return toast.info('Already listening...');
+    if (!SpeechRecognition) return toast.error('Speech recognition not supported.', { position: "top-center" });
+    if (isListening) return toast.info('Already listening...', { position: "top-center" });
 
     const recognition = new SpeechRecognition();
     window.SpeechRecognitionInstance = recognition;
@@ -65,18 +57,17 @@ const CreatePost = () => {
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.start();
+ prosent
     setIsListening(true);
 
     recognition.onresult = (event) => {
-
       const transcript = Array.from(event.results)
         .map((r) => r[0].transcript)
         .join('');
       setPost((prev) => ({ ...prev, description: transcript }));
-
     };
     recognition.onerror = (event) => {
-      toast.error(`Speech error: ${event.error}`);
+      toast.error(`Speech error: ${event.error}`, { position: "top-center" });
       setIsListening(false);
     };
     recognition.onend = () => setIsListening(false);
@@ -90,8 +81,7 @@ const CreatePost = () => {
   };
 
   const detectLocation = () => {
-
-    if (!navigator.geolocation) return toast.error('Geolocation not supported.');
+    if (!navigator.geolocation) return toast.error('Geolocation not supported.', { position: "top-center" });
     navigator.geolocation.getCurrentPosition(
       async ({ coords: { latitude, longitude } }) => {
         try {
@@ -104,11 +94,10 @@ const CreatePost = () => {
             location: data.display_name || `${latitude}, ${longitude}`,
           }));
         } catch {
-          toast.error('Could not fetch location.');
+          toast.error('Could not fetch location.', { position: "top-center" });
         }
       },
-      () => toast.error('Location access denied.')
-
+      () => toast.error('Location access denied.', { position: "top-center" })
     );
   };
 
@@ -120,11 +109,52 @@ const CreatePost = () => {
   const handleDragOver = (e) => e.preventDefault();
 
   const handleFileValidation = (files) => {
+    const maxImageSize = 2 * 1024 * 1024; // 2MB in bytes
+    const maxImages = 3;
+    const maxVideos = 1;
+    const currentImages = mediaFiles.filter(f => f.file?.type?.startsWith('image')).length;
+    const currentVideos = mediaFiles.filter(f => f.file?.type === 'video/mp4').length;
 
-    setMediaFiles((prev) => [
-      ...prev,
-      ...files.map((file) => ({ file, url: URL.createObjectURL(file) })),
-    ]);
+    const newFiles = [];
+    for (let file of files) {
+      if (!permittedMediaTypes.includes(file.type)) {
+        toast.error(`Invalid file type: ${file.name}. Only PNG, JPEG, and MP4 allowed.`, { position: "top-center" });
+        continue;
+      }
+
+      if (file.type.startsWith('image')) {
+        if (file.size > maxImageSize) {
+          toast.error(`Image too large: ${file.name}. Maximum 2MB allowed.`, { position: "top-center" });
+          continue;
+        }
+        if (currentImages + newFiles.filter(f => f.type?.startsWith('image')).length >= maxImages) {
+          toast.error(`Maximum ${maxImages} images allowed.`, { position: "top-center" });
+          continue;
+        }
+        newFiles.push({ file, url: URL.createObjectURL(file) });
+      }
+
+      if (file.type === 'video/mp4') {
+        if (currentVideos + newFiles.filter(f => f.type === 'video/mp4').length >= maxVideos) {
+          toast.error('Only one video is allowed.', { position: "top-center" });
+          continue;
+        }
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.onloadedmetadata = () => {
+          if (video.duration > 30) {
+            toast.error(`Video too long: ${file.name}. Maximum 30 30 seconds allowed.`, { position: "top-center" });
+          } else {
+            newFiles.push({ file, url: URL.createObjectURL(file) });
+          }
+        };
+        video.src = URL.createObjectURL(file);
+      }
+    }
+
+    if (newFiles.length > 0) {
+      setMediaFiles((prev) => [...prev, ...newFiles]);
+    }
   };
 
   const handleRemoveFile = (index) =>
@@ -134,7 +164,6 @@ const CreatePost = () => {
     const newIndex = index + direction;
     if (newIndex >= 0 && newIndex < files.length) {
       [files[index], files[newIndex]] = [files[newIndex], files[index]];
-
       setMediaFiles(files);
     }
   };
@@ -142,36 +171,51 @@ const CreatePost = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log('Creating post with userId:', post.userId);
     try {
       const mediaUrls = [];
       const mediaTypes = [];
+      let totalProgress = 0;
+
       for (let media of mediaFiles) {
-        const formData = new FormData();
-        formData.append('file', media.file);
-        const res = await axios.post('http://localhost:8080/api/posts/upload', formData, {
-          onUploadProgress: (p) =>
-            setUploadProgress(Math.round((p.loaded * 100) / p.total)),
-          withCredentials: true,
+        const file = media.file;
+        const storageRef = ref(storage, `posts/${user.id}/${Date.now()}_${file.name}`);
+        const uploadTask = uploadBytesResumable(storageRef, file);
+
+        await new Promise((resolve, reject) => {
+          uploadTask.on(
+            'state_changed',
+            (snapshot) => {
+              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+              totalProgress = Math.min(100, totalProgress + progress / mediaFiles.length);
+              setUploadProgress(Math.round(totalProgress));
+            },
+            (error) => {
+              toast.error(`Upload failed: ${error.message}`, { position: "top-center" });
+              reject(error);
+            },
+            async () => {
+              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+              mediaUrls.push(downloadURL);
+              mediaTypes.push(file.type.startsWith('video') ? 'video' : 'image');
+              resolve();
+            }
+          );
         });
-        mediaUrls.push(res.data);
-        mediaTypes.push(media.file.type.startsWith('video') ? 'video' : 'image');
       }
+
       const newPost = { ...post, mediaUrls, mediaTypes };
       await axios.post('http://localhost:8080/api/posts/create', newPost, {
         withCredentials: true,
       });
-      toast.success('Post created successfully!');
+      toast.success('Post created successfully!', { position: "top-center" });
       setTimeout(() => navigate('/postfeed'), 1500);
     } catch (err) {
       console.error('❌ Error submitting post:', err);
-      toast.error(`Failed to create post: ${err.response?.data || err.message}`);
-
+      toast.error(`Failed to create post: ${err.response?.data || err.message}`, { position: "top-center" });
     }
   };
 
   return (
-
     <div className="p-6 max-w-2xl mx-auto bg-white rounded-lg shadow-md">
       <h2 className="text-3xl font-bold mb-6 text-gray-800">Create New Post</h2>
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -225,7 +269,6 @@ const CreatePost = () => {
               onChange={(e) => setLanguage(e.target.value)}
               className="text-sm bg-white border rounded-lg px-2 py-1 focus:outline-none"
             >
-
               <option value="en-US">English</option>
               <option value="si-LK">Sinhala</option>
               <option value="ta-IN">Tamil</option>
@@ -260,6 +303,7 @@ const CreatePost = () => {
           <input
             type="file"
             multiple
+            accept=".jpg,.jpeg,.png,.mp4"
             onChange={handleFileSelect}
             className="w-full mt-3"
           />
@@ -306,7 +350,6 @@ const CreatePost = () => {
                     alt="Preview"
                     className="w-full max-h-40 object-cover rounded"
                   />
-
                 )}
               </div>
             ))}
@@ -315,26 +358,12 @@ const CreatePost = () => {
 
         {uploadProgress > 0 && uploadProgress < 100 && (
           <div className="w-full bg-gray-200 h-2 rounded">
-
             <div
               className="bg-blue-500 h-2 rounded"
               style={{ width: `${uploadProgress}%` }}
             ></div>
-
           </div>
         )}
-
-        <label className="flex items-center space-x-2">
-
-          <input
-            type="checkbox"
-            name="isPrivate"
-            checked={post.isPrivate}
-            onChange={handleInputChange}
-            className="h-4 w-4 text-blue-500"
-          />
-          <span className="text-gray-700">Private</span>
-        </label>
 
         <input
           type="text"
@@ -352,13 +381,10 @@ const CreatePost = () => {
         >
           Create Post
         </button>
-
       </form>
-      <ToastContainer position="top-right" autoClose={2000} />
+      <ToastContainer position="top-center" autoClose={2000} />
     </div>
   );
 };
 
-
 export default CreatePost;
-

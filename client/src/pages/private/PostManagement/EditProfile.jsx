@@ -12,15 +12,15 @@ const EditPost = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [post, setPost] = useState({
-    userId: '',
-    content: '',
-    description: '',
-    mediaUrls: [],
-    mediaTypes: [],
-    isPrivate: false,
-    taggedFriends: [],
-  });
+          const [post, setPost] = useState({
+            userId: '',
+            content: '',
+            description: '',
+            mediaUrls: [],
+            mediaTypes: [],
+            isPrivate: false,
+            taggedFriends: [],
+          });
 
   const [mediaFiles, setMediaFiles] = useState([]); // [{ file, url, existing, type }]
   const [uploadProgress, setUploadProgress] = useState(0);
