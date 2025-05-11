@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from "../../../context/AuthContext";
-import { storage } from '../../../firebase/firebase'; // Adjust the import path based on your file structure
+import { storage } from '../../../firebase/firebase';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import axios from 'axios';
 
@@ -13,8 +13,6 @@ const CreatePost = () => {
   const [language, setLanguage] = useState('en-US');
   const navigate = useNavigate();
   const { user } = useAuth();
-
-  console.log('User:', user);
 
   const [post, setPost] = useState({
     userId: '',
@@ -28,10 +26,11 @@ const CreatePost = () => {
     timestamp: ''
   });
 
+  const permittedMediaTypes = ['image/png', 'image/jpeg', 'video/mp4'];
+
   const [mediaFiles, setMediaFiles] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  // Initialize userId and timestamp on component mount
   useEffect(() => {
     if (!user?.id) {
       toast.error('User not logged in. Please log in to create a post.', { position: "top-center" });
@@ -58,6 +57,7 @@ const CreatePost = () => {
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.start();
+ prosent
     setIsListening(true);
 
     recognition.onresult = (event) => {
@@ -109,24 +109,29 @@ const CreatePost = () => {
   const handleDragOver = (e) => e.preventDefault();
 
   const handleFileValidation = (files) => {
-    const allowedTypes = ['image/png', 'image/jpeg', 'video/mp4'];
-    const requiredImages = 3;
+    const maxImageSize = 2 * 1024 * 1024; // 2MB in bytes
+    const maxImages = 3;
     const maxVideos = 1;
     const currentImages = mediaFiles.filter(f => f.file?.type?.startsWith('image')).length;
     const currentVideos = mediaFiles.filter(f => f.file?.type === 'video/mp4').length;
 
     const newFiles = [];
     for (let file of files) {
-      if (!allowedTypes.includes(file.type)) {
+      if (!permittedMediaTypes.includes(file.type)) {
         toast.error(`Invalid file type: ${file.name}. Only PNG, JPEG, and MP4 allowed.`, { position: "top-center" });
         continue;
       }
 
       if (file.type.startsWith('image')) {
-        if (currentImages + newFiles.filter(f => f.type?.startsWith('image')).length >= requiredImages) {
-          toast.error(`Exactly ${requiredImages} images are required.`, { position: "top-center" });
+        if (file.size > maxImageSize) {
+          toast.error(`Image too large: ${file.name}. Maximum 2MB allowed.`, { position: "top-center" });
           continue;
         }
+        if (currentImages + newFiles.filter(f => f.type?.startsWith('image')).length >= maxImages) {
+          toast.error(`Maximum ${maxImages} images allowed.`, { position: "top-center" });
+          continue;
+        }
+        newFiles.push({ file, url: URL.createObjectURL(file) });
       }
 
       if (file.type === 'video/mp4') {
@@ -134,26 +139,20 @@ const CreatePost = () => {
           toast.error('Only one video is allowed.', { position: "top-center" });
           continue;
         }
-      }
-
-      if (file.type === 'video/mp4') {
         const video = document.createElement('video');
         video.preload = 'metadata';
         video.onloadedmetadata = () => {
           if (video.duration > 30) {
-            toast.error(`Video too long: ${file.name}. Maximum 30 seconds allowed.`, { position: "top-center" });
+            toast.error(`Video too long: ${file.name}. Maximum 30 30 seconds allowed.`, { position: "top-center" });
           } else {
             newFiles.push({ file, url: URL.createObjectURL(file) });
-            setMediaFiles((prev) => [...prev, ...newFiles]);
           }
         };
         video.src = URL.createObjectURL(file);
-      } else {
-        newFiles.push({ file, url: URL.createObjectURL(file) });
       }
     }
 
-    if (newFiles.length > 0 && !files.some(f => f.type === 'video/mp4')) {
+    if (newFiles.length > 0) {
       setMediaFiles((prev) => [...prev, ...newFiles]);
     }
   };
@@ -171,14 +170,6 @@ const CreatePost = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Creating post with userId:', post.userId);
-
-    // Validate exactly 3 images
-    const imageCount = mediaFiles.filter(f => f.file?.type?.startsWith('image')).length;
-    // if (imageCount !== 3) {
-    //   toast.error(`Exactly 3 images are required. Currently ${imageCount} selected.`, { position: "top-center" });
-    //   return;
-    // }
 
     try {
       const mediaUrls = [];
@@ -373,17 +364,6 @@ const CreatePost = () => {
             ></div>
           </div>
         )}
-
-        {/* <label className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            name="isPrivate"
-            checked={post.isPrivate}
-            onChange={handleInputChange}
-            className="h-4 w-4 text-blue-500"
-          />
-          <span className="text-gray-700">Private</span>
-        </label> */}
 
         <input
           type="text"
