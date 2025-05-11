@@ -86,7 +86,7 @@ public class CommentController {
 
         return ResponseEntity.ok(sortedFriends);
     }
-    
+
 
 
     @DeleteMapping("/{id}")
