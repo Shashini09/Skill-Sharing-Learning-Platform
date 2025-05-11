@@ -49,4 +49,9 @@ public class ProgressUpdateService {
     public List<ProgressUpdate> getAllProgressUpdates() {
         return progressUpdateRepository.findAll();
     }
+
+    // New method to fetch progress updates by userId
+    public List<ProgressUpdate> getProgressUpdatesByUserId(String userId) {
+        return progressUpdateRepository.findByUserId(userId);
+    }
 }

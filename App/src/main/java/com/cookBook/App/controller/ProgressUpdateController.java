@@ -31,21 +31,26 @@ public class ProgressUpdateController {
         }
     }
 
-    // New endpoint to fetch all progress updates
     @GetMapping("/all")
     public ResponseEntity<List<ProgressUpdate>> getAllProgressUpdates() {
         List<ProgressUpdate> progressUpdates = progressUpdateService.getAllProgressUpdates();
         return ResponseEntity.ok(progressUpdates);
     }
 
-    // DTO for request body (unchanged)
+    // New endpoint to fetch progress updates by userId
+    @GetMapping("/{id}")
+    public ResponseEntity<List<ProgressUpdate>> getProgressUpdatesByUserId(@PathVariable String userId) {
+        List<ProgressUpdate> progressUpdates = progressUpdateService.getProgressUpdatesByUserId(userId);
+        return ResponseEntity.ok(progressUpdates);
+    }
+
+    // DTO for request body
     public static class ProgressUpdateRequest {
         private String userId;
         private String templateType;
         private String content;
         private String learningPlanId;
 
-        // Getters and Setters
         public String getUserId() {
             return userId;
         }

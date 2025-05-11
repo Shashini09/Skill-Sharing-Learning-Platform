@@ -68,6 +68,13 @@ const Navbar = () => {
               >
                 Learning Plans
               </Link>
+
+              <Link
+                to="/progress-feed"
+                className="hover:text-gray-300 transition-colors px-2 py-1 rounded hover:bg-gray-700"
+              >
+                Progress Feed
+              </Link>
               <Link
                 to="/profile"
                 className="hover:text-gray-300 transition-colors px-2 py-1 rounded hover:bg-gray-700"
