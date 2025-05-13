@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { useAuth } from "../../../context/AuthContext";
+import { useAuth } from '../../../context/AuthContext';
 import { storage } from '../../../firebase/firebase';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import axios from 'axios';
+import { debounce } from 'lodash';
 
 const CreatePost = () => {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -13,24 +14,44 @@ const CreatePost = () => {
   const [language, setLanguage] = useState('en-US');
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
 
   const [post, setPost] = useState({
     userId: '',
     topic: '',
     description: '',
+    category: 'general',
     mediaUrls: [],
     mediaTypes: [],
-    isPrivate: false,
-    taggedFriends: [],
     location: '',
     timestamp: ''
   });
 
   const permittedMediaTypes = ['image/png', 'image/jpeg', 'video/mp4'];
-
   const [mediaFiles, setMediaFiles] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  // Keyword-to-category mapping
+  const categoryKeywords = {
+    'baking': ['bread', 'cake', 'cookie', 'muffin', 'pastry', 'pie', 'scone', 'bake', 'oven', 'dough'],
+    'desserts': ['ice cream', 'pudding', 'chocolate', 'custard', 'tart', 'brownie', 'dessert', 'sweet', 'candy'],
+    'vegan': ['vegan', 'plant-based', 'tofu', 'lentil', 'chickpea', 'quinoa', 'avocado', 'kale'],
+    'vegetarian': ['vegetarian', 'veggie', 'salad', 'mushroom', 'spinach', 'eggplant', 'zucchini'],
+    'grilling': ['grill', 'barbecue', 'bbq', 'steak', 'ribs', 'skewers', 'smoked', 'charcoal'],
+    'Italian': ['pasta', 'pizza', 'lasagna', 'risotto', 'tiramisu', 'spaghetti', 'pesto', 'marinara'],
+    'Indian': ['curry', 'biryani', 'naan', 'tikka', 'masala', 'dal', 'samosa', 'chutney'],
+    'Mexican': ['taco', 'burrito', 'enchilada', 'salsa', 'guacamole', 'quesadilla', 'chili'],
+    'Asian': ['sushi', 'ramen', 'stir-fry', 'dumpling', 'pho', 'kimchi', 'teriyaki', 'noodle'],
+    'healthy eating': ['smoothie', 'quinoa', 'salad', 'low-carb', 'gluten-free', 'keto', 'organic'],
+    'meal prep': ['batch', 'prepping', 'freezer', 'lunchbox', 'meal plan', 'make-ahead'],
+    'cooking tips': ['knife skills', 'seasoning', 'sous-vide', 'braising', 'technique', 'recipe hack'],
+    'breakfast': ['pancake', 'omelette', 'waffle', 'smoothie', 'granola', 'yogurt', 'egg'],
+    'dinner': ['roast', 'casserole', 'stew', 'soup', 'dinner', 'main course', 'entree'],
+    'snacks': ['chips', 'dip', 'popcorn', 'trail mix', 'nachos', 'pretzel', 'snack'],
+    'beverages': ['cocktail', 'smoothie', 'juice', 'tea', 'coffee', 'mocktail', 'lemonade'],
+    'lifestyle': ['foodie', 'cooking show', 'kitchen', 'gourmet', 'culinary', 'dining'],
+    'general': []
+  };
   useEffect(() => {
     if (!user?.id) {
       toast.error('User not logged in. Please log in to create a post.', { position: "top-center" });
@@ -40,25 +61,69 @@ const CreatePost = () => {
     const timestamp = new Date().toISOString();
     setPost((prev) => ({ ...prev, userId: user.id, timestamp }));
     detectLocation();
-  }, [navigate, user]);
+  }, [user?.id, navigate]);
+
+  // Category detection with debouncing
+  useEffect(() => {
+    const detectCategory = (description) => {
+      if (!description) {
+        setPost((prev) => ({ ...prev, category: 'general' }));
+        return;
+      }
+
+      // Tokenize: lowercase, remove punctuation, split into words
+      const tokens = description
+        .toLowerCase()
+        .replace(/[.,!?]/g, '')
+        .split(/\s+/);
+
+      // Match tokens to categories
+      for (const [category, keywords] of Object.entries(categoryKeywords)) {
+        if (keywords.some(keyword => tokens.includes(keyword))) {
+          setPost((prev) => ({ ...prev, category }));
+          return;
+        }
+      }
+      setPost((prev) => ({ ...prev, category: 'general' }));
+    };
+
+    const debouncedDetectCategory = debounce(detectCategory, 300);
+
+    debouncedDetectCategory(post.description);
+
+    // Cleanup: Cancel debounce on unmount or description change
+    return () => {
+      debouncedDetectCategory.cancel();
+    };
+  }, [post.description]);
 
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setPost({ ...post, [name]: type === 'checkbox' ? checked : value });
+    const { name, value } = e.target;
+    setPost((prev) => ({ ...prev, [name]: value }));
   };
 
   const startListening = () => {
-    if (!SpeechRecognition) return toast.error('Speech recognition not supported.', { position: "top-center" });
-    if (isListening) return toast.info('Already listening...', { position: "top-center" });
+    if (!SpeechRecognition) {
+      toast.error('Speech recognition not supported by your browser.', { position: "top-center" });
+      return;
+    }
+    if (isListening) {
+      toast.info('Already listening...', { position: "top-center" });
+      return;
+    }
 
     const recognition = new SpeechRecognition();
     window.SpeechRecognitionInstance = recognition;
     recognition.lang = language;
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.start();
- prosent
-    setIsListening(true);
+
+    try {
+      recognition.start();
+      setIsListening(true);
+    } catch (err) {
+      toast.error('Failed to start speech recognition.', { position: "top-center" });
+    }
 
     recognition.onresult = (event) => {
       const transcript = Array.from(event.results)
@@ -81,7 +146,10 @@ const CreatePost = () => {
   };
 
   const detectLocation = () => {
-    if (!navigator.geolocation) return toast.error('Geolocation not supported.', { position: "top-center" });
+    if (!navigator.geolocation) {
+      toast.error('Geolocation not supported by your browser.', { position: "top-center" });
+      return;
+    }
     navigator.geolocation.getCurrentPosition(
       async ({ coords: { latitude, longitude } }) => {
         try {
@@ -109,7 +177,7 @@ const CreatePost = () => {
   const handleDragOver = (e) => e.preventDefault();
 
   const handleFileValidation = (files) => {
-    const maxImageSize = 2 * 1024 * 1024; // 2MB in bytes
+    const maxImageSize = 2 * 1024 * 1024; // 2MB
     const maxImages = 3;
     const maxVideos = 1;
     const currentImages = mediaFiles.filter(f => f.file?.type?.startsWith('image')).length;
@@ -131,7 +199,7 @@ const CreatePost = () => {
           toast.error(`Maximum ${maxImages} images allowed.`, { position: "top-center" });
           continue;
         }
-        newFiles.push({ file, url: URL.createObjectURL(file) });
+        newFiles.push({ file, url: URL.createObjectURL(file), type: file.type });
       }
 
       if (file.type === 'video/mp4') {
@@ -143,10 +211,11 @@ const CreatePost = () => {
         video.preload = 'metadata';
         video.onloadedmetadata = () => {
           if (video.duration > 30) {
-            toast.error(`Video too long: ${file.name}. Maximum 30 30 seconds allowed.`, { position: "top-center" });
+            toast.error(`Video too long: ${file.name}. Maximum 30 seconds allowed.`, { position: "top-center" });
           } else {
-            newFiles.push({ file, url: URL.createObjectURL(file) });
+            newFiles.push({ file, url: URL.createObjectURL(file), type: file.type });
           }
+          URL.revokeObjectURL(video.src);
         };
         video.src = URL.createObjectURL(file);
       }
@@ -159,6 +228,7 @@ const CreatePost = () => {
 
   const handleRemoveFile = (index) =>
     setMediaFiles((prev) => prev.filter((_, i) => i !== index));
+
   const moveFile = (index, direction) => {
     const files = [...mediaFiles];
     const newIndex = index + direction;
@@ -170,6 +240,7 @@ const CreatePost = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
 
     try {
       const mediaUrls = [];
@@ -178,6 +249,7 @@ const CreatePost = () => {
 
       for (let media of mediaFiles) {
         const file = media.file;
+        if (!file) continue;
         const storageRef = ref(storage, `posts/${user.id}/${Date.now()}_${file.name}`);
         const uploadTask = uploadBytesResumable(storageRef, file);
 
@@ -211,7 +283,9 @@ const CreatePost = () => {
       setTimeout(() => navigate('/postfeed'), 1500);
     } catch (err) {
       console.error('❌ Error submitting post:', err);
-      toast.error(`Failed to create post: ${err.response?.data || err.message}`, { position: "top-center" });
+      toast.error(`Failed to create post: ${err.response?.data?.message || err.message}`, { position: "top-center" });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -225,8 +299,9 @@ const CreatePost = () => {
             name="topic"
             value={post.topic}
             onChange={handleInputChange}
-            placeholder="Post topic"
+            placeholder="Post topic (e.g., My favorite recipe)"
             className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
           />
         </div>
 
@@ -236,16 +311,17 @@ const CreatePost = () => {
             name="description"
             value={post.description}
             onChange={handleInputChange}
-            placeholder="Description"
+            placeholder="Describe your post (e.g., Just made a delicious burger!)"
             className="w-full p-3 border rounded-lg pr-28 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
           />
           <div className="absolute right-3 top-12 flex items-center space-x-2">
             <button
               type="button"
               onClick={startListening}
-              disabled={isListening}
+              disabled={isListening || !SpeechRecognition}
               className={`text-sm px-3 py-1 rounded-lg transition ${
-                isListening
+                isListening || !SpeechRecognition
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : 'bg-blue-100 hover:bg-blue-200 text-blue-700'
               }`}
@@ -276,6 +352,18 @@ const CreatePost = () => {
           </div>
         </div>
 
+        <div>
+          <label className="block font-semibold mb-1 text-gray-700">Category</label>
+          <input
+            type="text"
+            name="category"
+            value={post.category}
+            onChange={handleInputChange}
+            placeholder="Category (auto-filled or type your own)"
+            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
         <div className="flex gap-3 items-center">
           <input
             type="text"
@@ -288,7 +376,8 @@ const CreatePost = () => {
           <button
             type="button"
             onClick={detectLocation}
-            className="text-sm bg-gray-200 px-3 py-2 rounded-lg hover:bg-gray-300 transition"
+            disabled={!navigator.geolocation}
+            className="text-sm bg-gray-200 px-3 py-2 rounded-lg hover:bg-gray-300 transition disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
             📍
           </button>
@@ -338,7 +427,7 @@ const CreatePost = () => {
                     ⬇️
                   </button>
                 )}
-                {p.file.type.startsWith('video') ? (
+                {p.type?.startsWith('video') ? (
                   <video
                     src={p.url}
                     controls
@@ -365,21 +454,16 @@ const CreatePost = () => {
           </div>
         )}
 
-        <input
-          type="text"
-          name="taggedFriends"
-          placeholder="Tagged friends (comma separated)"
-          onChange={(e) =>
-            setPost({ ...post, taggedFriends: e.target.value.split(',').map((tag) => tag.trim()) })
-          }
-          className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-
         <button
           type="submit"
-          className="w-full py-3 rounded-lg text-white font-semibold bg-blue-500 hover:bg-blue-600 transition"
+          disabled={isLoading}
+          className={`w-full py-3 rounded-lg text-white font-semibold transition ${
+            isLoading
+              ? 'bg-blue-300 cursor-not-allowed'
+              : 'bg-blue-500 hover:bg-blue-600'
+          }`}
         >
-          Create Post
+          {isLoading ? 'Creating Post...' : 'Create Post'}
         </button>
       </form>
       <ToastContainer position="top-center" autoClose={2000} />

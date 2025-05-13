@@ -9,12 +9,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-
 import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
@@ -25,10 +23,13 @@ public class PostController {
     @Autowired
     private PostService postService;
 
-    private static final String UPLOAD_DIR = "uploads/";
+    private static final String UPLOAD_DIR = "Uploads/";
 
     @PostMapping("/create")
     public ResponseEntity<Post> createPost(@RequestBody Post post) {
+        if (post.getCategory() == null || post.getCategory().trim().isEmpty()) {
+            post.setCategory("general");
+        }
         return ResponseEntity.ok(postService.createPost(post));
     }
 
@@ -57,6 +58,11 @@ public class PostController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/category/{category}")
+    public ResponseEntity<List<Post>> getPostsByCategory(@PathVariable String category) {
+        return ResponseEntity.ok(postService.getPostsByCategory(category));
+    }
+
     @PutMapping("/update/{id}")
     public ResponseEntity<Post> updatePost(@PathVariable String id, @RequestBody Post post) {
         return ResponseEntity.ok(postService.updatePost(id, post));
@@ -67,5 +73,4 @@ public class PostController {
         postService.deletePost(id);
         return ResponseEntity.ok("Deleted");
     }
-
 }

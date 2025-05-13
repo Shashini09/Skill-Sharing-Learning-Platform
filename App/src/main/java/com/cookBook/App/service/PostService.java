@@ -27,12 +27,37 @@ public class PostService {
 
     @Transactional
     public Post createPost(Post post) {
+        if (post.getCategory() == null || post.getCategory().trim().isEmpty()) {
+            post.setCategory("general"); // Default category
+        }
         post.setTimestamp(LocalDateTime.now());
-        return postRepository.save(post);
+        Post savedPost = postRepository.save(post);
+        logger.info("Created post with ID: {}", savedPost.getId());
+        return savedPost;
     }
 
     public List<Post> getAllPosts() {
         List<Post> posts = postRepository.findAll();
+        return posts.stream().map(post -> {
+            try {
+                if (post.getUserId() == null) {
+                    logger.warn("Post {} has null userId", post.getId());
+                    post.setUserName("Anonymous");
+                    return post;
+                }
+                Optional<User> user = userRepository.findById(post.getUserId());
+                post.setUserName(user.map(User::getName).orElse("Anonymous"));
+                return post;
+            } catch (Exception e) {
+                logger.error("Error processing post {}: {}", post.getId(), e.getMessage(), e);
+                post.setUserName("Anonymous");
+                return post;
+            }
+        }).toList();
+    }
+
+    public List<Post> getPostsByCategory(String category) {
+        List<Post> posts = postRepository.findByCategory(category);
         return posts.stream().map(post -> {
             try {
                 if (post.getUserId() == null) {
@@ -75,6 +100,7 @@ public class PostService {
         return postRepository.findById(id).map(post -> {
             if (updatedPost.getTopic() != null) post.setTopic(updatedPost.getTopic());
             if (updatedPost.getDescription() != null) post.setDescription(updatedPost.getDescription());
+            if (updatedPost.getCategory() != null) post.setCategory(updatedPost.getCategory());
             if (updatedPost.getMediaUrls() != null) post.setMediaUrls(updatedPost.getMediaUrls());
             if (updatedPost.getMediaTypes() != null) post.setMediaTypes(updatedPost.getMediaTypes());
             post.setPrivate(updatedPost.isPrivate());

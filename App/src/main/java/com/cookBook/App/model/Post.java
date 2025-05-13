@@ -15,14 +15,14 @@ public class Post {
     private String userId;
     private String topic;
     private String description;
+    private String category; // New field for category
     private List<String> mediaUrls;
     private List<String> mediaTypes;
     private boolean isPrivate;
     private List<String> taggedFriends;
     private String location;
     private LocalDateTime timestamp;
-
-    private String userName; // New field for username
+    private String userName;
 
     // Getters and Setters
     public String getId() { return id; }
@@ -36,6 +36,9 @@ public class Post {
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 
     public List<String> getMediaUrls() { return mediaUrls; }
     public void setMediaUrls(List<String> mediaUrls) { this.mediaUrls = mediaUrls; }
@@ -55,8 +58,6 @@ public class Post {
     public LocalDateTime getTimestamp() { return timestamp; }
     public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
 
-
     public String getUserName() { return userName; }
     public void setUserName(String userName) { this.userName = userName; }
 }
-
