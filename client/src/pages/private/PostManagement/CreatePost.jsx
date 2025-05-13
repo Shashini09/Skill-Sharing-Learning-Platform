@@ -52,6 +52,40 @@ const CreatePost = () => {
     'lifestyle': ['foodie', 'cooking show', 'kitchen', 'gourmet', 'culinary', 'dining'],
     'general': []
   };
+const categoryKeywords = {
+  'fast food': [
+    'burger', 'pizza', 'fries', 'taco', 'sandwich', 'nuggets', 'hotdog', 'fried chicken', 'wrap', 'fastfood', 
+    'hamburger', 'cheeseburger', 'burrito',
+    'sliders', 'quesadilla', 'onion rings', 'milkshake', 'drive-thru', 'takeout', 'hambuger', 'chicken strips', 
+    'sub', 'gyro', 'kebab'
+  ],
+  'healthy foods': [
+    'salad', 'quinoa', 'kale', 'avocado', 'smoothie', 'chia', 'oats', 'whole grain', 'low-fat', 'superfood', 
+    'spinach', 'broccoli', 'almond',
+    'flaxseed', 'turmeric', 'ginger', 'edamame', 'lentils', 'barley', 'tofu', 'arugula', 'cauliflower', 
+    'sweet potato', 'blueberries'
+  ],
+  'desserts': [
+    'ice cream', 'pudding', 'chocolate', 'custard', 'tart', 'brownie', 'dessert', 'sweet', 'candy', 'sorbet', 
+    'cheesecake', 'macaron', 'cookie', 'cake',
+    'donut', 'pie', 'mousse', 'trifle', 'fudge', 'gelato', 'pastry', 'cupcake', 'eclair', 'churros', 'baklava'
+  ],
+  'juice': [
+    'juice', 'green juice', 'smoothie', 'detox', 'fruit juice', 'vegetable juice', 'cold-pressed', 'lemonade', 
+    'blend', 'orange juice', 'apple juice',
+    'carrot juice', 'beet juice', 'pineapple juice', 'cranberry juice', 'kombucha', 'infused water', 'ginger shot', 
+    'celery juice', 'watermelon juice'
+  ],
+  'snacks': [
+    'chips', 'dip', 'popcorn', 'trail mix', 'nachos', 'pretzel', 'snack', 'cracker', 'granola bar', 'nuts', 
+    'jerky', 'fruit bar',
+    'hummus', 'veggie sticks', 'rice cakes', 'energy bar', 'pita chips', 'salsa', 'dried fruit', 'cheese sticks', 
+    'popped corn', 'seed mix'
+  ],
+  'general': [
+    'recipe', 'cooking', 'food', 'meal', 'dish'
+  ]
+};
   useEffect(() => {
     if (!user?.id) {
       toast.error('User not logged in. Please log in to create a post.', { position: "top-center" });
