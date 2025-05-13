@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import CloseFriends from "../../components/CloseFriends";
 import { useAuth } from "../../context/AuthContext";
 
-// Removed the duplicate declaration of 'currentUser' in the function parameter
 export default function AllUsers() {
   const { user } = useAuth();
   const [users, setUsers] = useState([]);
@@ -16,7 +15,7 @@ export default function AllUsers() {
   const [selectedFilter, setSelectedFilter] = useState("all");
 
   const currentUser = user;
-  const userName = user?.name || "Anonymous"; // Define userName based on currentUser object
+  const userName = user?.name || "Anonymous";
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -25,17 +24,14 @@ export default function AllUsers() {
           withCredentials: true,
         });
 
-        // Log the API response for debugging
         console.log("Fetched users:", response.data);
         console.log("Current user:", currentUser);
 
-        // Ensure response.data is an array
         const fetchedUsers = Array.isArray(response.data) ? response.data : [];
         if (fetchedUsers.length === 0) {
           setError("No users found in the system.");
         }
 
-        // Validate that each user has an id
         const validUsers = fetchedUsers.filter(
           (user) => user.id !== undefined && user.id !== null
         );
@@ -106,7 +102,6 @@ export default function AllUsers() {
 
   const filteredUsers = users
     .filter((dbUser) => {
-      // Exclude current user if currentUser and currentUser.id are valid
       if (
         currentUser &&
         currentUser.id !== undefined &&
@@ -124,7 +119,6 @@ export default function AllUsers() {
         );
         return isNotCurrentUser;
       }
-      // Log warning if currentUser is invalid
       console.warn(
         "No valid currentUser, including all users. Check currentUser prop:",
         currentUser
@@ -144,14 +138,13 @@ export default function AllUsers() {
       return true;
     });
 
-  // Log filtered users for debugging
   console.log("Filtered users:", filteredUsers);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-indigo-50 to-indigo-100">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="p-10 rounded-2xl shadow-lg bg-white text-center">
-          <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-indigo-600 border-t-transparent mb-6"></div>
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-purple-600 border-t-transparent mb-6"></div>
           <p className="text-gray-700 text-lg font-medium">Loading users...</p>
         </div>
       </div>
@@ -160,7 +153,7 @@ export default function AllUsers() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-indigo-50 to-indigo-100">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="p-10 rounded-2xl shadow-lg bg-white text-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -179,7 +172,7 @@ export default function AllUsers() {
           <p className="text-red-500 font-semibold text-lg">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="mt-6 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200 shadow-sm text-base font-medium"
+            className="mt-6 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200 shadow-sm text-base font-medium"
           >
             Try Again
           </button>
@@ -189,18 +182,27 @@ export default function AllUsers() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
-          <div className="bg-indigo-600 p-8">
-            <h1 className="text-3xl font-bold text-white">
-              Connect with People
-            </h1>
-            <p className="text-indigo-100 mt-2 text-lg">
-              Discover and follow other users to see their content
-            </p>
-          </div>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Connect with People</h1>
+          <Link
+            to="/users"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-lg font-medium transition shadow-sm flex items-center"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 mr-1.5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            Find Friends
+          </Link>
+        </div>
 
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8 border border-purple-100">
           {followError && (
             <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4 mx-8">
               <div className="flex">
@@ -225,7 +227,7 @@ export default function AllUsers() {
             </div>
           )}
 
-          <div className="p-8 border-b border-gray-200">
+          <div className="p-8">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-6 md:space-y-0 gap-4">
               <div className="relative flex-1 max-w-md">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -245,7 +247,7 @@ export default function AllUsers() {
                 <input
                   type="text"
                   placeholder="Search by name or email"
-                  className="pl-10 pr-4 py-3 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent shadow-sm text-base"
+                  className="pl-10 pr-4 py-3 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent shadow-sm text-base"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -256,9 +258,9 @@ export default function AllUsers() {
                   onClick={() => setSelectedFilter("all")}
                   className={`px-4 py-2 rounded-lg text-base font-medium ${
                     selectedFilter === "all"
-                      ? "bg-indigo-600 text-white"
+                      ? "bg-purple-600 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  } transition-colors duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-600`}
+                  } transition-colors duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-600`}
                 >
                   All
                 </button>
@@ -266,9 +268,9 @@ export default function AllUsers() {
                   onClick={() => setSelectedFilter("following")}
                   className={`px-4 py-2 rounded-lg text-base font-medium ${
                     selectedFilter === "following"
-                      ? "bg-indigo-600 text-white"
+                      ? "bg-purple-600 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  } transition-colors duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-600`}
+                  } transition-colors duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-600`}
                 >
                   Following
                 </button>
@@ -276,9 +278,9 @@ export default function AllUsers() {
                   onClick={() => setSelectedFilter("not-following")}
                   className={`px-4 py-2 rounded-lg text-base font-medium ${
                     selectedFilter === "not-following"
-                      ? "bg-indigo-600 text-white"
+                      ? "bg-purple-600 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  } transition-colors duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-600`}
+                  } transition-colors duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-600`}
                 >
                   Not Following
                 </button>
@@ -287,10 +289,9 @@ export default function AllUsers() {
           </div>
         </div>
 
-        {/* Close Friends Section */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8 border border-purple-100">
           <div className="p-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            <h2 className="text-2xl font-bold text-purple-900 mb-4">
               Close Friends
             </h2>
             <CloseFriends userName={userName} />
@@ -298,7 +299,7 @@ export default function AllUsers() {
         </div>
 
         {filteredUsers.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-lg p-10 text-center">
+          <div className="bg-white rounded-2xl shadow-lg p-10 text-center border border-purple-100">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-16 w-16 mx-auto text-gray-400 mb-4"
@@ -327,7 +328,7 @@ export default function AllUsers() {
             {filteredUsers.map((dbUser) => (
               <div
                 key={dbUser.id}
-                className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200"
+                className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200 border border-purple-100"
               >
                 <div className="p-6">
                   <div className="flex items-center space-x-4">
@@ -335,20 +336,20 @@ export default function AllUsers() {
                       <img
                         src={dbUser.picture}
                         alt={`${dbUser.name}'s profile`}
-                        className="h-16 w-16 rounded-full object-cover border-2 border-indigo-100 shadow-sm"
+                        className="h-16 w-16 rounded-full object-cover border-2 border-purple-100 shadow-sm"
                         onError={(e) =>
                           (e.target.src = "https://via.placeholder.com/100")
                         }
                       />
                     ) : (
-                      <div className="h-16 w-16 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-xl font-bold">
+                      <div className="h-16 w-16 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 text-xl font-bold">
                         {dbUser.name.charAt(0).toUpperCase()}
                       </div>
                     )}
                     <div className="flex-1">
                       <Link
                         to={`/profile/${dbUser.id}`}
-                        className="text-xl font-semibold text-gray-900 hover:text-indigo-600 transition-colors duration-200"
+                        className="text-xl font-semibold text-gray-900 hover:text-purple-600 transition-colors duration-200"
                       >
                         {dbUser.name}
                       </Link>
@@ -363,7 +364,7 @@ export default function AllUsers() {
                   <div className="mt-6 flex items-center justify-between">
                     <Link
                       to={`/frendsprofile/${dbUser.id}`}
-                      className="text-base font-medium text-indigo-600 hover:text-indigo-700 transition-colors duration-200"
+                      className="text-base font-medium text-purple-600 hover:text-purple-700 transition-colors duration-200"
                     >
                       View Profile
                     </Link>
@@ -376,8 +377,8 @@ export default function AllUsers() {
                       className={`inline-flex items-center px-4 py-2 rounded-lg text-base font-medium transition-colors duration-200 shadow-sm ${
                         dbUser.isFollowed
                           ? "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                          : "bg-indigo-600 text-white hover:bg-indigo-700"
-                      } disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600`}
+                          : "bg-purple-600 text-white hover:bg-purple-700"
+                      } disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-600`}
                     >
                       {isProcessing[dbUser.id] ? (
                         <svg

@@ -125,7 +125,7 @@ const FriendsProfile = () => {
 
                       {isFollowing ? 'Following' : 'Follow'}
                     </button> */}
-                    =======
+                    
                     <Link
                       to={`/chat`}
                       className="px-4 py-1.5 bg-gray-100 text-gray-800 rounded text-sm font-medium hover:bg-gray-200 transition-all duration-200 flex items-center"

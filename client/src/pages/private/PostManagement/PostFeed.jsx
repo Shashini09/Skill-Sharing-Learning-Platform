@@ -83,9 +83,7 @@ const PostFeed = () => {
     try {
       const res = await axios.post(
         `http://localhost:8080/api/comments`,
-
-        { text: commentText, postId, user: userName }, // <-- include postId here
-
+        { text: commentText, postId, user: userName },
         { withCredentials: true }
       );
       setComments((prev) => ({
@@ -135,7 +133,7 @@ const PostFeed = () => {
           ...prev,
           [postId]: prev[postId].filter((comment) => comment.id !== commentId),
         }));
-        toast.success("Comment deleted successfully"); // Local toast message
+        toast.success("Comment deleted successfully");
       } catch (err) {
         toast.error("Failed to delete comment");
       }
@@ -184,7 +182,6 @@ const PostFeed = () => {
           withCredentials: true,
         });
         fetchPosts();
-
         toast.success("Post deleted successfully");
       } catch (err) {
         toast.error("Delete failed. Please try again.");
@@ -219,7 +216,7 @@ const PostFeed = () => {
           <h1 className="text-3xl font-bold text-gray-900">Post Feed</h1>
           <Link
             to="/createpost"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition shadow-sm flex items-center"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-lg font-medium transition shadow-sm flex items-center"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -248,11 +245,11 @@ const PostFeed = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search posts..."
-              className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none"
             />
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition shadow-sm"
+              className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-lg font-medium transition shadow-sm"
             >
               Search
             </button>
@@ -263,8 +260,8 @@ const PostFeed = () => {
               onClick={() => setFilter("all")}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 filter === "all"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                  ? "bg-purple-600 text-white"
+                  : "bg-purple-100 hover:bg-purple-200 text-purple-800"
               }`}
             >
               All Posts
@@ -273,8 +270,8 @@ const PostFeed = () => {
               onClick={() => setFilter("myPosts")}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 filter === "myPosts"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                  ? "bg-purple-600 text-white"
+                  : "bg-purple-100 hover:bg-purple-200 text-purple-800"
               }`}
             >
               My Posts
@@ -283,8 +280,8 @@ const PostFeed = () => {
               onClick={() => setFilter("recent")}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 filter === "recent"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                  ? "bg-purple-600 text-white"
+                  : "bg-purple-100 hover:bg-purple-200 text-purple-800"
               }`}
             >
               Recent
@@ -293,8 +290,8 @@ const PostFeed = () => {
               onClick={() => setFilter("popular")}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 filter === "popular"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                  ? "bg-purple-600 text-white"
+                  : "bg-purple-100 hover:bg-purple-200 text-purple-800"
               }`}
             >
               Popular
@@ -305,7 +302,7 @@ const PostFeed = () => {
         {/* Posts List */}
         {loading ? (
           <div className="flex justify-center my-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
           </div>
         ) : posts.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm p-12 text-center">
@@ -333,10 +330,9 @@ const PostFeed = () => {
                 ? `No posts matching "${searchTerm}"`
                 : "No posts are available at the moment."}
             </p>
-
             <Link
               to="/createpost"
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-600"
             >
               Create Your First Post
             </Link>
@@ -416,7 +412,7 @@ const PostFeed = () => {
                         <div className="py-1">
                           <Link
                             to={`/edit-post/${post.id}`}
-                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-200 w-full text-left"
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -436,7 +432,7 @@ const PostFeed = () => {
                           </Link>
                           <button
                             onClick={() => handleDelete(post.id)}
-                            className="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100 w-full text-left"
+                            className="flex items-center px-4 py-2 text-sm text-red-700 hover:bg-red-200 w-full text-left"
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -467,14 +463,9 @@ const PostFeed = () => {
                     {post.topic || "Untitled"}
                   </h2>
 
-                  {/* Description */}
-                  <p className="text-gray-700 whitespace-pre-line mb-4">
-                    {post.description || ""}
-                  </p>
-
-                  {/* Private badge */}
-                  {post.isPrivate && (
-                    <div className="inline-flex items-center rounded-full px-2.5 py-0.5 bg-gray-100 text-gray-800 text-xs font-medium mb-4">
+                  {/* Category */}
+                  {post.category && (
+                    <div className="inline-flex items-center rounded-full px-2.5 py-0.5 bg-purple-100 text-purple-800 text-xs font-medium mb-4">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-3.5 w-3.5 mr-1"
@@ -486,12 +477,17 @@ const PostFeed = () => {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                          d="M7 7h10v10H7z"
                         />
                       </svg>
-                      Private
+                      {post.category}
                     </div>
                   )}
+
+                  {/* Description */}
+                  <p className="text-gray-700 whitespace-pre-line mb-4">
+                    {post.description || ""}
+                  </p>
 
                   {/* Media Grid */}
                   {Array.isArray(post.mediaUrls) &&
@@ -530,24 +526,6 @@ const PostFeed = () => {
                         )}
                       </div>
                     )}
-
-                  {/* Tagged Friends */}
-                  {Array.isArray(post.taggedFriends) &&
-                    post.taggedFriends.length > 0 && (
-                      <div className="mt-4">
-                        <p className="text-sm text-gray-500 mb-1">Tagged:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {post.taggedFriends.map((friend, idx) => (
-                            <span
-                              key={idx}
-                              className="inline-flex items-center rounded-full bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5"
-                            >
-                              {friend}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                 </div>
 
                 {/* Post Action Bar */}
@@ -557,8 +535,8 @@ const PostFeed = () => {
                       onClick={() => handleLike(post.id)}
                       className={`flex items-center transition ${
                         userLikes[post.id]
-                          ? "text-blue-600"
-                          : "text-gray-500 hover:text-blue-600"
+                          ? "text-purple-600"
+                          : "text-gray-500 hover:text-purple-600"
                       }`}
                     >
                       <svg
@@ -580,7 +558,7 @@ const PostFeed = () => {
                     </button>
                     <button
                       onClick={() => openCommentPopup(post.id)}
-                      className="flex items-center text-gray-500 hover:text-blue-600 transition"
+                      className="flex items-center text-gray-500 hover:text-purple-600 transition"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -616,15 +594,14 @@ const PostFeed = () => {
                         viewBox="0 0 24 24"
                         stroke="currentColor"
                       >
-                        {" "}
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
                           d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-                        />{" "}
+                        />
                       </svg>
-                      <span>Share </span>
+                      <span>Share</span>
                     </button>
                   </div>
                   {user?.id === post.userId && (
@@ -654,10 +631,10 @@ const PostFeed = () => {
       {isCommentPopupOpen && (
         <div
           className="fixed inset-0 flex items-center justify-center z-30"
-          style={{ backgroundColor: "rgba(233, 239, 240, 0.91)" }} // Light blue with 50% opacity
+          style={{ backgroundColor: "rgba(230, 230, 250, 0.91)" }} // Light purple
         >
           <div className="bg-white w-3/4 max-w-2xl h-4/5 rounded-lg shadow-lg overflow-hidden">
-            <div className="flex justify-between items-center bg-blue-700 text-white px-6 py-3">
+            <div className="flex justify-between items-center bg-purple-600 text-white px-6 py-3">
               <h2 className="text-lg font-bold">
                 Comments ({getCommentCount(activePostId)})
               </h2>
@@ -665,7 +642,7 @@ const PostFeed = () => {
                 onClick={closeCommentPopup}
                 className="text-white hover:text-gray-200"
               >
-                &times;
+                ×
               </button>
             </div>
             <div className="p-6 overflow-y-auto h-full">
@@ -674,7 +651,7 @@ const PostFeed = () => {
                 className="mb-6"
               >
                 <textarea
-                  className="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-600"
                   rows="3"
                   placeholder="Write a comment..."
                   value={commentText}
@@ -683,7 +660,7 @@ const PostFeed = () => {
                 />
                 <button
                   type="submit"
-                  className="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg transition-colors"
+                  className="mt-3 bg-purple-600 hover:bg-purple-700 text-white px-5 py-2 rounded-lg transition-colors"
                 >
                   Post Comment
                 </button>
@@ -697,7 +674,7 @@ const PostFeed = () => {
                   >
                     <div className="text-sm text-gray-600 mb-2 flex justify-between items-center">
                       <span>
-                        <strong className="text-blue-700">
+                        <strong className="text-purple-800">
                           {comment.user}
                         </strong>{" "}
                         · {new Date(comment.timestamp).toLocaleString()}
@@ -707,13 +684,13 @@ const PostFeed = () => {
                     {editingCommentId === comment.id ? (
                       <>
                         <textarea
-                          className="w-full border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                          className="w-full border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                           value={editCommentText}
                           onChange={(e) => setEditCommentText(e.target.value)}
                         />
                         <div className="mt-2 flex gap-2">
                           <button
-                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded-lg"
+                            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-1 rounded-lg"
                             onClick={() =>
                               handleUpdateComment(comment.id, activePostId)
                             }
@@ -721,7 +698,7 @@ const PostFeed = () => {
                             Save
                           </button>
                           <button
-                            className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-1 rounded-lg"
+                            className="bg-purple-100 hover:bg-purple-200 text-purple-800 px-4 py-1 rounded-lg"
                             onClick={() => setEditingCommentId(null)}
                           >
                             Cancel
@@ -734,7 +711,7 @@ const PostFeed = () => {
                         {comment.user === user?.name && (
                           <div className="flex gap-4 text-sm">
                             <button
-                              className="text-blue-600 hover:underline"
+                              className="text-gray-600 hover:underline"
                               onClick={() => handleEditComment(comment)}
                             >
                               Edit
