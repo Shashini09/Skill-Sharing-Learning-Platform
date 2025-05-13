@@ -93,9 +93,7 @@ const Navbar = () => {
                 <NavLink to="/postfeed" isActive={isActive("/postfeed")}>
                   Feed
                 </NavLink>
-                <NavLink to="/createpost" isActive={isActive("/createpost")}>
-                  Create Post
-                </NavLink>
+                
                 <NavLink
                   to="/learning-plans"
                   isActive={isActive("/learning-plans")}

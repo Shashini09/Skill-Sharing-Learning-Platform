@@ -1,19 +1,24 @@
 package com.cookBook.App.controller;
 
-
 import com.cookBook.App.model.ProgressUpdate;
 import com.cookBook.App.service.ProgressUpdateService;
+import com.cookBook.App.repository.ProgressUpdateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/progress-updates")
-@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class ProgressUpdateController {
 
     @Autowired
     private ProgressUpdateService progressUpdateService;
+
+    @Autowired
+    private ProgressUpdateRepository progressUpdateRepository;
 
     @PostMapping("/create")
     public ResponseEntity<?> createProgressUpdate(@RequestBody ProgressUpdateRequest request) {
@@ -30,14 +35,18 @@ public class ProgressUpdateController {
         }
     }
 
-    // DTO for request body
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<ProgressUpdate>> getProgressUpdatesByUserId(@PathVariable String userId) {
+        List<ProgressUpdate> updates = progressUpdateRepository.findByUserId(userId);
+        return ResponseEntity.ok(updates);
+    }
+
     public static class ProgressUpdateRequest {
         private String userId;
         private String templateType;
         private String content;
         private String learningPlanId;
 
-        // Getters and Setters
         public String getUserId() {
             return userId;
         }
