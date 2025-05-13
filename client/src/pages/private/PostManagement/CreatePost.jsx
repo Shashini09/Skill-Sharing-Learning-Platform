@@ -32,26 +32,6 @@ const CreatePost = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
 
   // Keyword-to-category mapping
-  const categoryKeywords = {
-    'baking': ['bread', 'cake', 'cookie', 'muffin', 'pastry', 'pie', 'scone', 'bake', 'oven', 'dough'],
-    'desserts': ['ice cream', 'pudding', 'chocolate', 'custard', 'tart', 'brownie', 'dessert', 'sweet', 'candy'],
-    'vegan': ['vegan', 'plant-based', 'tofu', 'lentil', 'chickpea', 'quinoa', 'avocado', 'kale'],
-    'vegetarian': ['vegetarian', 'veggie', 'salad', 'mushroom', 'spinach', 'eggplant', 'zucchini'],
-    'grilling': ['grill', 'barbecue', 'bbq', 'steak', 'ribs', 'skewers', 'smoked', 'charcoal'],
-    'Italian': ['pasta', 'pizza', 'lasagna', 'risotto', 'tiramisu', 'spaghetti', 'pesto', 'marinara'],
-    'Indian': ['curry', 'biryani', 'naan', 'tikka', 'masala', 'dal', 'samosa', 'chutney'],
-    'Mexican': ['taco', 'burrito', 'enchilada', 'salsa', 'guacamole', 'quesadilla', 'chili'],
-    'Asian': ['sushi', 'ramen', 'stir-fry', 'dumpling', 'pho', 'kimchi', 'teriyaki', 'noodle'],
-    'healthy eating': ['smoothie', 'quinoa', 'salad', 'low-carb', 'gluten-free', 'keto', 'organic'],
-    'meal prep': ['batch', 'prepping', 'freezer', 'lunchbox', 'meal plan', 'make-ahead'],
-    'cooking tips': ['knife skills', 'seasoning', 'sous-vide', 'braising', 'technique', 'recipe hack'],
-    'breakfast': ['pancake', 'omelette', 'waffle', 'smoothie', 'granola', 'yogurt', 'egg'],
-    'dinner': ['roast', 'casserole', 'stew', 'soup', 'dinner', 'main course', 'entree'],
-    'snacks': ['chips', 'dip', 'popcorn', 'trail mix', 'nachos', 'pretzel', 'snack'],
-    'beverages': ['cocktail', 'smoothie', 'juice', 'tea', 'coffee', 'mocktail', 'lemonade'],
-    'lifestyle': ['foodie', 'cooking show', 'kitchen', 'gourmet', 'culinary', 'dining'],
-    'general': []
-  };
 const categoryKeywords = {
   'fast food': [
     'burger', 'pizza', 'fries', 'taco', 'sandwich', 'nuggets', 'hotdog', 'fried chicken', 'wrap', 'fastfood', 
