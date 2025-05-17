@@ -228,7 +228,7 @@ const Navbar = () => {
                   Login
                 </Link>
                 <Link
-                  to="/register"
+                  to="/login"
                   className="bg-purple-700 hover:bg-purple-600 text-white px-4 py-1 rounded-md text-sm font-medium transition-colors duration-200 shadow-sm"
                 >
                   Register
