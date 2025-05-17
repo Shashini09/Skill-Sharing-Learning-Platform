@@ -3,7 +3,6 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Link } from "react-router-dom";
-
 import { useAuth } from "../../../context/AuthContext";
 
 const PostFeed = () => {
@@ -26,8 +25,8 @@ const PostFeed = () => {
     return comments[postId]?.length || 0;
   };
 
-  const userName = user?.name || "Anonymous"; // Fallback if undefined
-  const userId = user?.id || null; // Fallback if undefined
+  const userName = user?.name || "Anonymous";
+  const userId = user?.id || null;
 
   const openCommentPopup = (postId) => {
     setActivePostId(postId);
@@ -43,16 +42,20 @@ const PostFeed = () => {
   const fetchPosts = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:8080/api/posts/all", {
+      const endpoint = filter === "recommended" && userId
+        ? `http://localhost:8080/api/likes/recommended/${userId}`
+        : "http://localhost:8080/api/posts/all";
+      
+      const res = await axios.get(endpoint, {
         withCredentials: true,
-        params: { filter, search: searchTerm },
+        params: { filter: filter !== "recommended" ? filter : null, search: searchTerm },
       });
+      
       const sortedPosts = res.data.sort(
         (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
       );
       setPosts(sortedPosts);
 
-      // Initialize all comments as hidden
       const initialVisibility = {};
       sortedPosts.forEach((post) => {
         initialVisibility[post.id] = false;
@@ -234,7 +237,6 @@ const PostFeed = () => {
           </Link>
         </div>
 
-        {/* Search and Filter */}
         <div className="bg-white rounded-xl shadow-sm mb-8 p-4">
           <form
             onSubmit={handleSearch}
@@ -296,10 +298,19 @@ const PostFeed = () => {
             >
               Popular
             </button>
+            <button
+              onClick={() => setFilter("recommended")}
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                filter === "recommended"
+                  ? "bg-purple-600 text-white"
+                  : "bg-purple-100 hover:bg-purple-200 text-purple-800"
+              }`}
+            >
+              Recommended
+            </button>
           </div>
         </div>
 
-        {/* Posts List */}
         {loading ? (
           <div className="flex justify-center my-12">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
@@ -344,7 +355,6 @@ const PostFeed = () => {
                 key={post.id}
                 className="bg-white rounded-xl shadow-sm overflow-hidden"
               >
-                {/* Post Header with User Info */}
                 <div className="p-4 sm:p-6 flex justify-between items-start border-b border-gray-200">
                   <div className="flex items-start">
                     <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden mr-3">
@@ -395,7 +405,6 @@ const PostFeed = () => {
                     </div>
                   </div>
 
-                  {/* Post Actions Dropdown */}
                   {user?.id === post.userId && (
                     <div className="relative group">
                       <button className="p-2 rounded-full hover:bg-gray-100 focus:outline-none">
@@ -456,14 +465,11 @@ const PostFeed = () => {
                   )}
                 </div>
 
-                {/* Post Content */}
                 <div className="p-4 sm:p-6">
-                  {/* Topic */}
                   <h2 className="text-xl font-bold text-gray-900 mb-2">
                     {post.topic || "Untitled"}
                   </h2>
 
-                  {/* Category */}
                   {post.category && (
                     <div className="inline-flex items-center rounded-full px-2.5 py-0.5 bg-purple-100 text-purple-800 text-xs font-medium mb-4">
                       <svg
@@ -484,12 +490,10 @@ const PostFeed = () => {
                     </div>
                   )}
 
-                  {/* Description */}
                   <p className="text-gray-700 whitespace-pre-line mb-4">
                     {post.description || ""}
                   </p>
 
-                  {/* Media Grid */}
                   {Array.isArray(post.mediaUrls) &&
                     post.mediaUrls.length > 0 && (
                       <div
@@ -528,7 +532,6 @@ const PostFeed = () => {
                     )}
                 </div>
 
-                {/* Post Action Bar */}
                 <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-t border-gray-200">
                   <div className="flex items-center space-x-4">
                     <button
@@ -627,11 +630,10 @@ const PostFeed = () => {
         )}
       </div>
 
-      {/* Comments Section Popup */}
       {isCommentPopupOpen && (
         <div
           className="fixed inset-0 flex items-center justify-center z-30"
-          style={{ backgroundColor: "rgba(230, 230, 250, 0.91)" }} // Light purple
+          style={{ backgroundColor: "rgba(230, 230, 250, 0.91)" }}
         >
           <div className="bg-white w-3/4 max-w-2xl h-4/5 rounded-lg shadow-lg overflow-hidden">
             <div className="flex justify-between items-center bg-purple-600 text-white px-6 py-3">
