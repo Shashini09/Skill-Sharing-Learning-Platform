@@ -422,13 +422,13 @@ const Profile = () => {
                     {post.description}
                   </p>
                   {post.mediaUrls && post.mediaUrls.length > 0 && (
-                    <div className="mt-2 flex space-x-2 overflow-x-auto py-1">
+                    <div className="mt-2 flex space-x-3 overflow-x-auto py-2">
                       {post.mediaUrls.map((url, index) => (
                         <img
                           key={index}
                           src={url}
                           alt={`Post media ${index + 1}`}
-                          className="h-20 w-20 object-cover rounded-md shadow-sm"
+                          className="h-32 w-32 object-cover rounded-md shadow-sm flex-shrink-0"
                           onError={(e) =>
                             (e.target.src = "/placeholder-image.jpg")
                           }
