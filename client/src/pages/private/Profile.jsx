@@ -364,243 +364,353 @@ const Profile = () => {
     return name ? name.charAt(0).toUpperCase() : "?";
   };
 
-  const renderActivityContent = () => {
-    switch (activeTab) {
-      case "posts":
-        return (
-          <div className="space-y-4">
-            {posts.length === 0 ? (
-              <div className="text-center py-6">
-                <div className="mx-auto h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-gray-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                    />
-                  </svg>
-                </div>
-                <p className="text-gray-600 text-sm mb-3">
-                  You haven't posted anything yet.
-                </p>
-                <Link
-                  to="/createpost"
-                  className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
+ const renderActivityContent = () => {
+  switch (activeTab) {
+    case "posts":
+      return (
+        <div className="space-y-6">
+          {posts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 px-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+              <div className="mx-auto h-16 w-16 rounded-full bg-blue-50 flex items-center justify-center mb-4">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-8 w-8 text-blue-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-3 w-3 mr-1"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Create Your First Post
-                </Link>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                  />
+                </svg>
               </div>
-            ) : (
-              posts.map((post) => (
-                <div
-                  key={post.id}
-                  className="border border-gray-200 rounded-lg p-3 hover:shadow-sm transition-shadow"
+              <h3 className="text-gray-800 font-medium mb-2">No posts yet</h3>
+              <p className="text-gray-500 text-sm text-center mb-4 max-w-xs">
+                Share your favorite recipes, cooking tips or food adventures with the community.
+              </p>
+              <Link
+                to="/createpost"
+                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors shadow-sm"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 mr-2"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
                 >
-                  <h3 className="text-base font-semibold text-gray-800">
-                    {post.topic}
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {post.description}
-                  </p>
-                  {post.mediaUrls && post.mediaUrls.length > 0 && (
-                    <div className="mt-2 flex space-x-3 overflow-x-auto py-2">
-                      {post.mediaUrls.map((url, index) => (
+                  <path
+                    fillRule="evenodd"
+                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Create Your First Post
+              </Link>
+            </div>
+          ) : (
+            posts.map((post) => (
+              <div
+                key={post.id}
+                className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow duration-300"
+              >
+                <div className="p-4">
+                  <div className="flex items-center mb-3">
+                    <div className="h-10 w-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center mr-3 text-blue-600 font-bold">
+                      {dbUser.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h3 className="text-gray-800 font-medium leading-tight">
+                        {dbUser.name}
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        {new Date(post.timestamp).toLocaleDateString(undefined, {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                        {post.location && (
+                          <span className="ml-2 inline-flex items-center">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-3 w-3 mr-1"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                              />
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                              />
+                            </svg>
+                            {post.location}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Post topic header with recipe tag */}
+                  <div className="mb-3">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-lg font-semibold text-gray-800">
+                        {post.topic}
+                      </h2>
+                      <span className="bg-blue-50 text-blue-600 text-xs font-medium px-2.5 py-1 rounded-full">
+                        Recipe
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Post description with expandable text */}
+                  <div className="mb-4">
+                    <p className="text-gray-600 text-sm leading-relaxed">
+                      {post.description}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Media gallery */}
+                {post.mediaUrls && post.mediaUrls.length > 0 && (
+                  <div className={`border-t border-gray-100 ${post.mediaUrls.length === 1 ? "" : "grid grid-cols-2 gap-1"}`}>
+                    {post.mediaUrls.length === 1 ? (
+                      <div className="aspect-video w-full">
                         <img
+                          src={post.mediaUrls[0]}
+                          alt={`${post.topic} - media`}
+                          className="h-full w-full object-cover"
+                          onError={(e) => (e.target.src = "/placeholder-image.jpg")}
+                        />
+                      </div>
+                    ) : (
+                      post.mediaUrls.slice(0, 4).map((url, index) => (
+                        <div 
                           key={index}
-                          src={url}
-                          alt={`Post media ${index + 1}`}
-                          className="h-32 w-32 object-cover rounded-md shadow-sm flex-shrink-0"
+                          className={`relative aspect-square ${post.mediaUrls.length > 4 && index === 3 ? "overflow-hidden" : ""}`}
+                        >
+                          <img
+                            src={url}
+                            alt={`${post.topic} - media ${index + 1}`}
+                            className="h-full w-full object-cover"
+                            onError={(e) => (e.target.src = "/placeholder-image.jpg")}
+                          />
+                          {post.mediaUrls.length > 4 && index === 3 && (
+                            <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
+                              <span className="text-white font-medium text-lg">
+                                +{post.mediaUrls.length - 4} more
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+
+                {/* Post footer with actions */}
+                <div className="p-3 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
+                  <div className="flex space-x-4">
+                    <button className="flex items-center text-gray-500 hover:text-blue-600 transition-colors text-sm font-medium">
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        className="h-5 w-5 mr-1.5" 
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        stroke="currentColor"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth={1.5} 
+                          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
+                        />
+                      </svg>
+                      Like
+                    </button>
+                    <button className="flex items-center text-gray-500 hover:text-blue-600 transition-colors text-sm font-medium">
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        className="h-5 w-5 mr-1.5" 
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        stroke="currentColor"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth={1.5} 
+                          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" 
+                        />
+                      </svg>
+                      Comment
+                    </button>
+                  </div>
+                  <div>
+                    <button className="flex items-center text-gray-500 hover:text-blue-600 transition-colors text-sm font-medium">
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        className="h-5 w-5 mr-1.5" 
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        stroke="currentColor"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth={1.5} 
+                          d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" 
+                        />
+                      </svg>
+                      Share
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      );
+    case "followers":
+      return (
+        <div className="py-2">
+          {followers.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 px-4">
+              <p className="text-gray-500 text-center font-medium mb-2">
+                No followers yet
+              </p>
+              <p className="text-gray-400 text-center text-sm max-w-xs">
+                Your followers will appear here once people start following
+                your profile.
+              </p>
+            </div>
+          ) : (
+            <ul className="divide-y divide-gray-100">
+              {followers.map((follower) => (
+                <li
+                  key={follower.id}
+                  className="hover:bg-gray-50 transition duration-150 ease-in-out"
+                >
+                  <div className="flex items-center justify-between p-4">
+                    <div className="flex items-center space-x-4">
+                      <div className="h-12 w-12 rounded-full overflow-hidden bg-gray-100 border border-gray-200">
+                        <img
+                          src={
+                            follower.picture ||
+                            "https://via.placeholder.com/40"
+                          }
+                          alt={`${follower.name}'s avatar`}
+                          className="h-full w-full object-cover"
                           onError={(e) =>
                             (e.target.src = "/placeholder-image.jpg")
                           }
                         />
-                      ))}
+                      </div>
+                      <div>
+                        <h3 className="text-gray-800 font-medium">
+                          {follower.name}
+                        </h3>
+                        <p className="text-gray-500 text-sm">Follower</p>
+                      </div>
                     </div>
-                  )}
-                  <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
-                    <span>
-                      Posted on {new Date(post.timestamp).toLocaleDateString()}
-                    </span>
-                    {post.location && (
-                      <span className="flex items-center">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-3 w-3 mr-1"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                        </svg>
-                        {post.location}
-                      </span>
-                    )}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() =>
+                          handleMessage(follower.id, follower.name)
+                        }
+                        className="text-gray-700 hover:text-gray-900 px-3 py-1 rounded-md border border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 transition duration-150 text-sm"
+                      >
+                        message
+                      </button>
+                      <Link
+                        to={`/frendsprofile/${follower.id}`}
+                        className="text-gray-700 hover:text-gray-900 px-3 py-1 rounded-md border border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 transition duration-150 text-sm"
+                      >
+                        Profile
+                      </Link>
+                    </div>
                   </div>
-                </div>
-              ))
-            )}
-          </div>
-        );
-      case "followers":
-        return (
-          <div className="py-2">
-            {followers.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 px-4">
-                <p className="text-gray-500 text-center font-medium mb-2">
-                  No followers yet
-                </p>
-                <p className="text-gray-400 text-center text-sm max-w-xs">
-                  Your followers will appear here once people start following
-                  your profile.
-                </p>
-              </div>
-            ) : (
-              <ul className="divide-y divide-gray-100">
-                {followers.map((follower) => (
-                  <li
-                    key={follower.id}
-                    className="hover:bg-gray-50 transition duration-150 ease-in-out"
-                  >
-                    <div className="flex items-center justify-between p-4">
-                      <div className="flex items-center space-x-4">
-                        <div className="h-12 w-12 rounded-full overflow-hidden bg-gray-100 border border-gray-200">
-                          <img
-                            src={
-                              follower.picture ||
-                              "https://via.placeholder.com/40"
-                            }
-                            alt={`${follower.name}'s avatar`}
-                            className="h-full w-full object-cover"
-                            onError={(e) =>
-                              (e.target.src = "/placeholder-image.jpg")
-                            }
-                          />
-                        </div>
-                        <div>
-                          <h3 className="text-gray-800 font-medium">
-                            {follower.name}
-                          </h3>
-                          <p className="text-gray-500 text-sm">Follower</p>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() =>
-                            handleMessage(follower.id, follower.name)
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      );
+    case "following":
+      return (
+        <div className="py-2">
+          {following.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 px-4">
+              <p className="text-gray-500 text-center font-medium mb-2">
+                You're not following anyone yet
+              </p>
+              <p className="text-gray-400 text-center text-sm max-w-xs">
+                When you follow someone, they'll appear here.
+              </p>
+            </div>
+          ) : (
+            <ul className="divide-y divide-gray-100">
+              {following.map((person) => (
+                <li
+                  key={person.id}
+                  className="hover:bg-gray-50 transition duration-150 ease-in-out"
+                >
+                  <div className="flex items-center justify-between p-4">
+                    <div className="flex items-center space-x-4">
+                      <div className="h-12 w-12 rounded-full overflow-hidden bg-gray-100 border border-gray-200">
+                        <img
+                          src={
+                            person.picture || "https://via.placeholder.com/40"
                           }
-                          className="text-gray-700 hover:text-gray-900 px-3 py-1 rounded-md border border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 transition duration-150 text-sm"
-                        >
-                          message
-                        </button>
-                        <Link
-                          to={`/frendsprofile/${follower.id}`}
-                          className="text-gray-700 hover:text-gray-900 px-3 py-1 rounded-md border border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 transition duration-150 text-sm"
-                        >
-                          Profile
-                        </Link>
+                          alt={`${person.name}'s profile`}
+                          className="h-full w-full object-cover"
+                          onError={(e) =>
+                            (e.target.src = "/placeholder-image.jpg")
+                          }
+                        />
+                      </div>
+                      <div>
+                        <h3 className="text-gray-800 font-medium">
+                          {person.name}
+                        </h3>
+                        <p className="text-gray-500 text-sm">Following</p>
                       </div>
                     </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        );
-      case "following":
-        return (
-          <div className="py-2">
-            {following.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 px-4">
-                <p className="text-gray-500 text-center font-medium mb-2">
-                  You're not following anyone yet
-                </p>
-                <p className="text-gray-400 text-center text-sm max-w-xs">
-                  When you follow someone, they'll appear here.
-                </p>
-              </div>
-            ) : (
-              <ul className="divide-y divide-gray-100">
-                {following.map((person) => (
-                  <li
-                    key={person.id}
-                    className="hover:bg-gray-50 transition duration-150 ease-in-out"
-                  >
-                    <div className="flex items-center justify-between p-4">
-                      <div className="flex items-center space-x-4">
-                        <div className="h-12 w-12 rounded-full overflow-hidden bg-gray-100 border border-gray-200">
-                          <img
-                            src={
-                              person.picture || "https://via.placeholder.com/40"
-                            }
-                            alt={`${person.name}'s profile`}
-                            className="h-full w-full object-cover"
-                            onError={(e) =>
-                              (e.target.src = "/placeholder-image.jpg")
-                            }
-                          />
-                        </div>
-                        <div>
-                          <h3 className="text-gray-800 font-medium">
-                            {person.name}
-                          </h3>
-                          <p className="text-gray-500 text-sm">Following</p>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleMessage(person.id, person.name)}
-                          className="text-gray-700 hover:text-gray-900 px-3 py-1 rounded-md border border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 transition duration-150 text-sm"
-                        >
-                          message
-                        </button>
-                        <Link
-                          to={`/frendsprofile/${person.id}`}
-                          className="text-gray-700 hover:text-gray-900 px-3 py-1 rounded-md border border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 transition duration-150 text-sm"
-                        >
-                          Profile
-                        </Link>
-                      </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleMessage(person.id, person.name)}
+                        className="text-gray-700 hover:text-gray-900 px-3 py-1 rounded-md border border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 transition duration-150 text-sm"
+                      >
+                        message
+                      </button>
+                      <Link
+                        to={`/frendsprofile/${person.id}`}
+                        className="text-gray-700 hover:text-gray-900 px-3 py-1 rounded-md border border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 transition duration-150 text-sm"
+                      >
+                        Profile
+                      </Link>
                     </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      );
+    default:
+      return null;
+  }
+};
+
 
   if (error) {
     return (
