@@ -32,40 +32,41 @@ const CreatePost = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
 
   // Keyword-to-category mapping
-const categoryKeywords = {
-  'fast food': [
-    'burger', 'pizza', 'fries', 'taco', 'sandwich', 'nuggets', 'hotdog', 'fried chicken', 'wrap', 'fastfood', 
-    'hamburger', 'cheeseburger', 'burrito',
-    'sliders', 'quesadilla', 'onion rings', 'milkshake', 'drive-thru', 'takeout', 'hambuger', 'chicken strips', 
-    'sub', 'gyro', 'kebab'
-  ],
-  'healthy foods': [
-    'salad', 'quinoa', 'kale', 'avocado', 'smoothie', 'chia', 'oats', 'whole grain', 'low-fat', 'superfood', 
-    'spinach', 'broccoli', 'almond',
-    'flaxseed', 'turmeric', 'ginger', 'edamame', 'lentils', 'barley', 'tofu', 'arugula', 'cauliflower', 
-    'sweet potato', 'blueberries'
-  ],
-  'desserts': [
-    'ice cream', 'pudding', 'chocolate', 'custard', 'tart', 'brownie', 'dessert', 'sweet', 'candy', 'sorbet', 
-    'cheesecake', 'macaron', 'cookie', 'cake',
-    'donut', 'pie', 'mousse', 'trifle', 'fudge', 'gelato', 'pastry', 'cupcake', 'eclair', 'churros', 'baklava'
-  ],
-  'juice': [
-    'juice', 'green juice', 'smoothie', 'detox', 'fruit juice', 'vegetable juice', 'cold-pressed', 'lemonade', 
-    'blend', 'orange juice', 'apple juice',
-    'carrot juice', 'beet juice', 'pineapple juice', 'cranberry juice', 'kombucha', 'infused water', 'ginger shot', 
-    'celery juice', 'watermelon juice'
-  ],
-  'snacks': [
-    'chips', 'dip', 'popcorn', 'trail mix', 'nachos', 'pretzel', 'snack', 'cracker', 'granola bar', 'nuts', 
-    'jerky', 'fruit bar',
-    'hummus', 'veggie sticks', 'rice cakes', 'energy bar', 'pita chips', 'salsa', 'dried fruit', 'cheese sticks', 
-    'popped corn', 'seed mix'
-  ],
-  'general': [
-    'recipe', 'cooking', 'food', 'meal', 'dish'
-  ]
-};
+  const categoryKeywords = {
+    'fast food': [
+      'burger', 'pizza', 'fries', 'taco', 'sandwich', 'nuggets', 'hotdog', 'fried chicken', 'wrap', 'fastfood', 
+      'hamburger', 'cheeseburger', 'burrito',
+      'sliders', 'quesadilla', 'onion rings', 'milkshake', 'drive-thru', 'takeout', 'hambuger', 'chicken strips', 
+      'sub', 'gyro', 'kebab'
+    ],
+    'healthy foods': [
+      'salad', 'quinoa', 'kale', 'avocado', 'smoothie', 'chia', 'oats', 'whole grain', 'low-fat', 'superfood', 
+      'spinach', 'broccoli', 'almond',
+      'flaxseed', 'turmeric', 'ginger', 'edamame', 'lentils', 'barley', 'tofu', 'arugula', 'cauliflower', 
+      'sweet potato', 'blueberries'
+    ],
+    'desserts': [
+      'ice cream', 'pudding', 'chocolate', 'custard', 'tart', 'brownie', 'dessert', 'sweet', 'candy', 'sorbet', 
+      'cheesecake', 'macaron', 'cookie', 'cake',
+      'donut', 'pie', 'mousse', 'trifle', 'fudge', 'gelato', 'pastry', 'cupcake', 'eclair', 'churros', 'baklava'
+    ],
+    'juice': [
+      'juice', 'green juice', 'smoothie', 'detox', 'fruit juice', 'vegetable juice', 'cold-pressed', 'lemonade', 
+      'blend', 'orange juice', 'apple juice',
+      'carrot juice', 'beet juice', 'pineapple juice', 'cranberry juice', 'kombucha', 'infused water', 'ginger shot', 
+      'celery juice', 'watermelon juice'
+    ],
+    'snacks': [
+      'chips', 'dip', 'popcorn', 'trail mix', 'nachos', 'pretzel', 'snack', 'cracker', 'granola bar', 'nuts', 
+      'jerky', 'fruit bar',
+      'hummus', 'veggie sticks', 'rice cakes', 'energy bar', 'pita chips', 'salsa', 'dried fruit', 'cheese sticks', 
+      'popped corn', 'seed mix'
+    ],
+    'general': [
+      'recipe', 'cooking', 'food', 'meal', 'dish'
+    ]
+  };
+
   useEffect(() => {
     if (!user?.id) {
       toast.error('User not logged in. Please log in to create a post.', { position: "top-center" });
@@ -473,8 +474,8 @@ const categoryKeywords = {
           disabled={isLoading}
           className={`w-full py-3 rounded-lg text-white font-semibold transition ${
             isLoading
-              ? 'bg-blue-300 cursor-not-allowed'
-              : 'bg-blue-500 hover:bg-blue-600'
+              ? 'bg-purple-300 cursor-not-allowed'
+              : 'bg-purple-500 hover:bg-purple-600'
           }`}
         >
           {isLoading ? 'Creating Post...' : 'Create Post'}
